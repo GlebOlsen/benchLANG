@@ -90,12 +90,12 @@ ULTRA SLOW - INPUT FIB 40
 <strong>Difficulty is my personal estemations on difficulty of reading, writing and working (building or compiling/installation of the language) with a language.
 Ranking (median time * total time):</strong>
 
-|Java:   |55.36245            |Difficulty:  |Hardest|
-|GO:     |55.8820889988       |Difficulty:  |Easy|
-|C:      |68.1633865          |Difficulty:  |Medium|
-|C#      |102.488583333       |Difficulty:  |Hard|
-|php:    |376.690646171       |Difficulty:  |Medium|
-|python: |(100 years)*5.4     |Difficulty:  |Easiest|
+|:-------:|:---------------:|:-----------:|:-------:|
+| GO:     | 55.8820889988   | Difficulty: | Easy    |
+| C:      | 68.1633865      | Difficulty: | Medium  |
+| C#      | 102.488583333   | Difficulty: | Hard    |
+| php:    | 376.690646171   | Difficulty: | Medium  |
+| python: | (100 years)*5.4 | Difficulty: | Easiest |
 
 <strong>Simple overview over what I recommend to program in based on the:</strong>
 
