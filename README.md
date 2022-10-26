@@ -220,15 +220,13 @@ ULTRA SLOW - INPUT FIB 40
 Ranking (median time * total time):</strong>
 
 <table>
-<thead>
+<tbody>
   <tr>
     <th>Java:</th>
     <th>55.36245</th>
     <th>Difficulty:</th>
     <th>Hardest</th>
   </tr>
-</thead>
-<tbody>
   <tr>
     <td>GO:</td>
     <td>55.8820889988</td>
