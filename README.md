@@ -222,10 +222,10 @@ Ranking (median time * total time):</strong>
 <table>
 <tbody>
   <tr>
-    <th>Java:</th>
-    <th>55.36245</th>
-    <th>Difficulty:</th>
-    <th>Hardest</th>
+    <td>Java:</td>
+    <td>55.36245</td>
+    <td>Difficulty:</td>
+    <td>Hardest</td>
   </tr>
   <tr>
     <td>GO:</td>
