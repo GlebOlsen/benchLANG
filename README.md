@@ -90,12 +90,36 @@ ULTRA SLOW - INPUT FIB 40
 <strong>Difficulty is my personal estemations on difficulty of reading, writing and working (building or compiling/installation of the language) with a language.
 Ranking (median time * total time):</strong>
 
-|:-------:|:---------------:|:-----------:|:-------:|
-| GO:     | 55.8820889988   | Difficulty: | Easy    |
-| C:      | 68.1633865      | Difficulty: | Medium  |
-| C#      | 102.488583333   | Difficulty: | Hard    |
-| php:    | 376.690646171   | Difficulty: | Medium  |
-| python: | (100 years)*5.4 | Difficulty: | Easiest |
+  <tr>
+    <td class="tg-0lax">GO:</td>
+    <td class="tg-0lax">55.8820889988</td>
+    <td class="tg-0lax">Difficulty:</td>
+    <td class="tg-0lax">Easy</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">C:</td>
+    <td class="tg-0lax">68.1633865</td>
+    <td class="tg-0lax">Difficulty:</td>
+    <td class="tg-0lax">Medium</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">C#</td>
+    <td class="tg-0lax">102.488583333</td>
+    <td class="tg-0lax">Difficulty:</td>
+    <td class="tg-0lax">Hard</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">php:</td>
+    <td class="tg-0lax">376.690646171</td>
+    <td class="tg-0lax">Difficulty:</td>
+    <td class="tg-0lax">Medium</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">python:</td>
+    <td class="tg-0lax">(100 years)*5.4</td>
+    <td class="tg-0lax">Difficulty:</td>
+    <td class="tg-0lax">Easiest</td>
+  </tr>
 
 <strong>Simple overview over what I recommend to program in based on the:</strong>
 
