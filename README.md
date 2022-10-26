@@ -19,7 +19,6 @@ Cpu usage results: +-1% on cpu usage (the NUMBER is not average but highest reco
     <td>5.249787 seconds</td>
     <td>5.159522 seconds</td>
     <td>5.227406 seconds</td>
-    <td>5.085</td>
   </tr>
 </thead>
 </table>
@@ -33,7 +32,6 @@ median: 5.21223833333 sec
     <td>4.670806 seconds</td>
     <td>4.660863 seconds</td>
     <td>4.667871 seconds</td>
-    <td>5.085</td>
   </tr>
 </thead>
 </table>
@@ -54,7 +52,6 @@ median: 4.66651333333 sec
     <td>5473 ms</td>
     <td>5588 ms</td>
     <td>5649 ms</td>
-    <td>5.085</td>
   </tr>
 </thead>
 </table>
@@ -68,7 +65,6 @@ median: 4.66651333333 sec
     <td>7660 ms</td>
     <td>7656 ms</td>
     <td>7647 ms</td>
-    <td>5.085</td>
   </tr>
 </thead>
 </table>
@@ -89,7 +85,6 @@ median: 4.66651333333 sec
     <td>3.210499999s</td>
     <td>3.431543398s</td>
     <td>3.294428264s</td>
-    <td>5.085</td>
   </tr>
 </thead>
 </table>
@@ -103,7 +98,6 @@ median: 4.66651333333 sec
     <td>4.398628241s</td>
     <td>4.473093495s</td>
     <td>4.315429637s</td>
-    <td>5.085</td>
   </tr>
 </thead>
 </table>
@@ -127,7 +121,6 @@ OpenJDK 64-Bit Server VM (build 17.0.4+8-Debian-1, mixed mode, sharing)
     <td>5.232</td>
     <td>5.015</td>
     <td>5.085</td>
-    <td>5.085</td>
   </tr>
 </thead>
 </table>
@@ -141,7 +134,6 @@ OpenJDK 64-Bit Server VM (build 17.0.4+8-Debian-1, mixed mode, sharing)
     <td>2.619</td>
     <td>2.619</td>
     <td>2.659</td>
-    <td>5.085</td>
   </tr>
 </thead>
 </table>
