@@ -11,10 +11,33 @@ RAM: 16gb 3600mhz 16cl
 Cpu usage results: +-1% on cpu usage (the NUMBER is not average but highest recorded while the code is running)
 
 * Results:
-|p   CPU USAGE:9.1%      |5.249787 seconds    |5.159522 seconds    |5.227406 seconds|
+
+<table>
+<thead>
+  <tr>
+    <td>p CPU USAGE:9.1%</td>
+    <td>5.249787 seconds</td>
+    <td>5.159522 seconds</td>
+    <td>5.227406 seconds</td>
+    <td>5.085</td>
+  </tr>
+</thead>
+</table>
+
 median: 5.21223833333 sec
 
-|f   CPU USAGE:4.7%      |4.670806 seconds    |4.660863 seconds    |4.667871 seconds|
+<table>
+<thead>
+  <tr>
+    <td>f CPU USAGE:4.7%</td>
+    <td>4.670806 seconds</td>
+    <td>4.660863 seconds</td>
+    <td>4.667871 seconds</td>
+    <td>5.085</td>
+  </tr>
+</thead>
+</table>
+
 median: 4.66651333333 sec
 
 * Conclusion: 9.87875166666 seconds in total 6.9% on median cpu
@@ -23,10 +46,33 @@ median: 4.66651333333 sec
 2. C#: 6.0.401
 
 * Results:
-|p   CPU USAGE:9.2%   |5473 ms     |5588 ms     |5649 ms|
+
+<table>
+<thead>
+  <tr>
+    <td>p CPU USAGE:9.2%</td>
+    <td>5473 ms</td>
+    <td>5588 ms</td>
+    <td>5649 ms</td>
+    <td>5.085</td>
+  </tr>
+</thead>
+</table>
+
 - median: 5.570 sec
 
-|f   CPU USAGE:6.3%   |7660 ms     |7656 ms     |7647 ms|
+<table>
+<thead>
+  <tr>
+    <td>f CPU USAGE:6.3%</td>
+    <td>7660 ms</td>
+    <td>7656 ms</td>
+    <td>7647 ms</td>
+    <td>5.085</td>
+  </tr>
+</thead>
+</table>
+
 - median: 7.65433333333 sec
 
 * Conclusion: 13.2243333333 seconds in total 7.75% on median cpu
@@ -35,10 +81,33 @@ median: 4.66651333333 sec
 3. GO: go version go1.19.1
 
 * Results:
-|p   CPU USAGE:9.8%      |3.210499999s    |3.431543398s    |3.294428264s|
+
+<table>
+<thead>
+  <tr>
+    <td>p CPU USAGE:9.8%</td>
+    <td>3.210499999s</td>
+    <td>3.431543398s</td>
+    <td>3.294428264s</td>
+    <td>5.085</td>
+  </tr>
+</thead>
+</table>
+
 - median: 3.31215722033 sec
 
-|f   CPU USAGE:4.7%      |4.398628241s    |4.473093495s    |4.315429637s|
+<table>
+<thead>
+  <tr>
+    <td>f CPU USAGE:4.7%</td>
+    <td>4.398628241s</td>
+    <td>4.473093495s</td>
+    <td>4.315429637s</td>
+    <td>5.085</td>
+  </tr>
+</thead>
+</table>
+
 - median: 4.39571712433 sec
 
 * Conclusion: 7.70787434466 seconds in total 7.25% on median cpu
@@ -50,10 +119,33 @@ OpenJDK Runtime Environment (build 17.0.4+8-Debian-1)
 OpenJDK 64-Bit Server VM (build 17.0.4+8-Debian-1, mixed mode, sharing)
 
 * Results:
-|p   CPU USAGE:9.6%      |5.232   |5.015   |5.085|
+
+<table>
+<thead>
+  <tr>
+    <td>p CPU USAGE:9.6%</td>
+    <td>5.232</td>
+    <td>5.015</td>
+    <td>5.085</td>
+    <td>5.085</td>
+  </tr>
+</thead>
+</table>
+
 - median: 5.11066666667 sec
 
-|f   CPU USAGE:4.7%      |2.619   |2.619   |2.659|
+<table>
+<thead>
+  <tr>
+    <td>f CPU USAGE:4.7%</td>
+    <td>2.619</td>
+    <td>2.619</td>
+    <td>2.659</td>
+    <td>5.085</td>
+  </tr>
+</thead>
+</table>
+
 - median: 2.63233333333 sec
 
 * Conclusion: 7.743 seconds in total 7.15% on median cpu
@@ -62,10 +154,33 @@ OpenJDK 64-Bit Server VM (build 17.0.4+8-Debian-1, mixed mode, sharing)
 5. PHP: PHP 8.1.7 (cli) (built: Jun 25 2022 07:57:04)
 
 * Results:
-|p   CPU USAGE:7.3%      |20.230474948883     |20.74360704422      |18.90252304077|
+
+<table>
+<thead>
+  <tr>
+    <td>p CPU USAGE:7.3%</td>
+    <td>20.230474948883</td>
+    <td>20.74360704422</td>
+    <td>18.90252304077</td>
+    <td>15942.782878875732 ms</td>
+  </tr>
+</thead>
+</table>
+
 - median: 19.9588683446 sec
 
-|f   CPU USAGE:4.7%      |43.086226940155     |42.493710041046     |42.888781070709|
+<table>
+<thead>
+  <tr>
+    <td>f CPU USAGE:4.7%</td>
+    <td>43.086226940155</td>
+    <td>42.493710041046</td>
+    <td>42.888781070709</td>
+    <td>15942.782878875732 ms</td>
+  </tr>
+</thead>
+</table>
+
 - median: 42.8229060173 sec
 
 * Conclusion: 62.7817743619 seconds in total 6% on median cpu
@@ -76,11 +191,33 @@ OpenJDK 64-Bit Server VM (build 17.0.4+8-Debian-1, mixed mode, sharing)
 * Results:
 
 ULTRA SLOW - INPUT PRIMES 100000
-|p   CPU USAGE:6.1%      |19523.1773853302 ms     |18918.177127838135 ms       |19589.87522125244 ms|
+<table>
+<thead>
+  <tr>
+    <td>p CPU USAGE:6.1%</td>
+    <td>19523.1773853302 ms</td>
+    <td>18918.177127838135 ms</td>
+    <td>19589.87522125244 ms</td>
+    <td>15942.782878875732 ms</td>
+  </tr>
+</thead>
+</table>
+
 - median: 19.3437432448 sec
 
 ULTRA SLOW - INPUT FIB 40
-|f   CPU USAGE:4.7%      |15299.479484558105 ms       |15400.542259216309 ms       |15942.782878875732 ms|
+<table>
+<thead>
+  <tr>
+    <td>f CPU USAGE:4.7%</td>
+    <td>15299.479484558105 ms</td>
+    <td>15400.542259216309 ms</td>
+    <td>15942.782878875732 ms</td>
+    <td>15942.782878875732 ms</td>
+  </tr>
+</thead>
+</table>
+
 - median: 15.5476015409 sec
 
 * Conclusion: (100 years later) seconds in total 5.4% on median cpu
