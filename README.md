@@ -1,34 +1,48 @@
 # Programming language benchmark! 
-**Benchmark type: Primes & Fibonacci**
-<hr/>
+**Benchmark type:**
+* Primes
+* Fibonacci
 
-### Results 2023 summer 06/2023:
 
-**PC specs:
+
+
+**PC specs:**
 * Arch 6.3.8 i3-wm
-* 5900X 48gb ram with 3600mhz and 16cl**
+* 5900X 48gb ram with 3600mhz and 16cl
 
 **Computer power mode:**
 
 `sudo cpupower frequency-set -g performance`
 
-## C lang:
+<br/>
+<hr/>
+
+## **Language benchmarks:**
+Results are from 2023 summer 06/2023:
+
+## **C lang:**
 
 Command:
 `C command: gcc -O3 file.c -o NAME`
 
-**Primes:** 1.2 - 1.5 sec (2 + threads looked like)
+### **Restults:**
 
-**Fibonacci:** 1.12 - 1.15 sec (1 thread)
+* **Primes:** 1.2 - 1.5 sec (2 + threads looked like)
 
-## Rust lang:
+* **Fibonacci:** 1.12 - 1.15 sec (1 thread)
+
+<br />
+
+## **Rust lang:**
 
 Command:
 `rustc -O -C lto -C target-cpu=native file.rs`
 
-**Primes:** 1.3 - 1.5 sec (2 + threads looked like)
+### **Restults:**
 
-**Fibonacci:** 2.3 - 2.4 sec (1 thread)
+* **Primes:** 1.3 - 1.5 sec (2 + threads looked like)
+
+* **Fibonacci:** 2.3 - 2.4 sec (1 thread)
 
 
 More cooming...
@@ -45,3 +59,49 @@ Based on the scores, ease to program, online documentation and relevance:
 * **Rust Lang:** Safer (if you use it) alternative to C, very relevant hyped language **but** takes a lil longer to write than C.
 
 2. Coming...
+
+
+**(Runtime is combined time of both benchmarks)**
+<table>
+<tbody>
+    <th>Language</th>
+    <th>Runtime</th>
+    <th>Difficulty</th>
+  <tr>
+    <td>C:</td>
+    <td>2.485 sec</td>
+    <td>Medium</td>
+  </tr>
+  <tr>
+    <td>Rust</td>
+    <td>3.75 sec</td>
+    <td>Hard</td>
+  </tr>
+  <tr>
+    <td>Java:</td>
+    <td></td>
+    <td>Hardest</td>
+  </tr>
+  <tr>
+    <td>GO:</td>
+    <td></td>
+    <td>Easy</td>
+  </tr>
+
+  <tr>
+    <td>C#</td>
+    <td>102.488583333</td>
+    <td>Hard</td>
+  </tr>
+  <tr>
+    <td>php:</td>
+    <td>376.690646171</td>
+    <td>Medium</td>
+  </tr>
+  <tr>
+    <td>python:</td>
+    <td>(100 years)*5.4</td>
+    <td>Easiest</td>
+  </tr>
+</tbody>
+</table>
