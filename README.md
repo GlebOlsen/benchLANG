@@ -56,7 +56,7 @@ More cooming...
 
 What language is better?
 
-Based on the scores, ease to program, online documentation and relevance:
+Based on the runtime, cpuusage, ease to program, online documentation and relevance:
 
 1. **Both C or Rust:** Both are balanced so it's up to the dev's taste.
 * **C lang:** Easier types, fast compile time, and lots of documentation **but** relevance is nonexistent and boomer language.
