@@ -10,7 +10,29 @@ RAM: 16gb 3600mhz 16cl
 
 Cpu usage results: +-1% on cpu usage (the NUMBER is not average but highest recorded while the code is running)
 
-* Results:
+<hr/>
+## Results 2023 summer 17/06/2023:
+UPDATE 2023 summer: 
+C command: gcc -O3 file.c -o NAME
+Rust command: rustc -O -C lto -C target-cpu=native file.rs
+
+power mode for cpu (while running other Apps): sudo cpupower frequency-set -g performance
+
+## C:
+
+**Prime:** 1.2 - 1.5 sec (2 + threads looked like)
+
+**Fib:** 1.14 - 1.20 sec (1 thread)
+
+<hr/>
+
+## Rust:
+
+**Prime:** 1.3 - 1.5 sec (2 + threads looked like)
+
+**Fib:** 2.3 - sec (1 thread)
+
+<hr/>
 
 <table>
 <thead>
@@ -260,7 +282,7 @@ Ranking (median time * total time):</strong>
 </tbody>
 </table>
 
-<strong>Simple overview over what I recommend to program in based on the:</strong>
+<strong>Simple overview over what I recommend to program in based on the results:</strong>
 
 1. GO - Literally best, that's it. Easy to install and write and work with.
 
