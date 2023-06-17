@@ -20,7 +20,6 @@ fn is_prime(n: u32) -> bool {
 }
 fn main() {
     let start_time = Instant::now();
-
     for i in 2..10_000_000 {
         if is_prime(i) {
             println!("{}", i);
