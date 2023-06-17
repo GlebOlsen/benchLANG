@@ -1,10 +1,12 @@
 # Programming language benchmark! 
+
+**Methedology:**
+
+This is a benchmark for runtime (in seconds) and cpusage (number of threads with 100% usage).
+
 **Benchmark type:**
 * Primes
 * Fibonacci
-
-
-
 
 **PC specs:**
 * Arch 6.3.8 i3-wm
@@ -19,6 +21,8 @@
 
 ## **Language benchmarks:**
 Results are from 2023 summer 06/2023:
+
+<br/>
 
 ## **C lang:**
 
@@ -55,8 +59,8 @@ What language is better?
 Based on the scores, ease to program, online documentation and relevance:
 
 1. **Both C or Rust:** Both are balanced so it's up to the dev's taste.
-* **C lang:** Easier types, compile time, and documentation **but** relevance is nonexistent and boomer language.
-* **Rust Lang:** Safer (if you use it) alternative to C, very relevant hyped language **but** takes a lil longer to write than C.
+* **C lang:** Easier types, fast compile time, and lots of documentation **but** relevance is nonexistent and boomer language.
+* **Rust Lang:** Safer (if you use it) alternative to C, very relevant hyped language **but** takes a little longer to write than C.
 
 2. Coming...
 
