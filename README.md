@@ -1,5 +1,5 @@
-# (>^_^)> RANKING IN THE BOTTOM! <(^_^<)
-## Programming language benchmark! - Compute
+# Programming language benchmark! - Primes & Fibonacci
+## (>^_^)> RANKING IN THE BOTTOM! <(^_^<)
 <hr/>
 
 ### Results 2023 summer 17/06/2023:
@@ -30,7 +30,7 @@
 More cooming...
 <hr/>
 
-## Conclusion:
+## Conclusion (Ranking):
 
 What language is better?
 
