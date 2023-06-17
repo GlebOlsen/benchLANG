@@ -1,6 +1,6 @@
 # Programming language benchmark! 
 
-**Methedology:**
+**Methodology:**
 
 This is a benchmark for runtime (in seconds) and cpusage (number of threads with 100% usage).
 
