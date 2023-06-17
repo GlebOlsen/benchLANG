@@ -1,8 +1,8 @@
-# Programming language benchmark! - Primes & Fibonacci
-## (>^_^)> RANKING IN THE BOTTOM! <(^_^<)
+# Programming language benchmark! 
+**Benchmark type: Primes & Fibonacci**
 <hr/>
 
-### Results 2023 summer 17/06/2023:
+### Results 2023 summer 06/2023:
 
 **PC specs:
 * Arch 6.3.8 i3-wm
@@ -13,6 +13,8 @@
 `sudo cpupower frequency-set -g performance`
 
 ## C lang:
+
+Command:
 `C command: gcc -O3 file.c -o NAME`
 
 **Primes:** 1.2 - 1.5 sec (2 + threads looked like)
@@ -20,6 +22,8 @@
 **Fibonacci:** 1.12 - 1.15 sec (1 thread)
 
 ## Rust lang:
+
+Command:
 `rustc -O -C lto -C target-cpu=native file.rs`
 
 **Primes:** 1.3 - 1.5 sec (2 + threads looked like)
