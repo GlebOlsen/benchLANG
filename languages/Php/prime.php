@@ -1,17 +1,24 @@
 <?php
-$starttime = microtime(true);
-$n = 10000000;
-for ($i = 2; $i <= $n; $i++){ 
-    for ($j = 2; $j <= ($i/$j); $j++){
-        if ($i%$j == 0) {
-            break;
-        }
+function is_prime($n) {
+    if ($n <= 1)
+        return 0;
+    if ($n <= 3)
+        return 1;
+    if ($n % 2 == 0 || $n % 3 == 0)
+        return 0;
+    $i = 5;
+    while ($i * $i <= $n) {
+        if ($n % $i == 0 || $n % ($i + 2) == 0)
+            return 0;
+        $i += 6;
     }
-    if ($j > ($i/$j)) {
-        echo($i. "\n");
-    }
+    return 1;
 }
-$endtime = microtime(true);
-$timediff = $endtime - $starttime;
-echo $timediff
+$t = microtime(true);
+for ($i = 2; $i < 10000000; $i++) {
+    if (is_prime($i))
+        echo $i . "\n";
+}
+$time_taken = microtime(true) - $t;
+echo $time_taken . " seconds to execute\n";
 ?>

@@ -1,13 +1,20 @@
 import time
-start = time.time()
-num=100000
-for prime in range(3, num+1):
-    check = False
-    for factor in range(2, prime):
-        if prime%factor == 0:
-            check = True
-            break
-    else:
-        print(prime)
-end = time.time()
-print((end-start) * 10**3, 'ms')
+def is_prime(n):
+    if n <= 1:
+        return False
+    if n <= 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+start_time = time.time()
+for i in range(2, 10000000):
+    if is_prime(i):
+        print(i)
+elapsed_time = time.time() - start_time
+print(f"{elapsed_time} seconds to execute")
