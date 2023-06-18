@@ -172,6 +172,8 @@ Based on the runtime, cpuusage, ease to program, online documentation and releva
 Example from GO lang:
 
 `(1.8 + 2.1)/2 + (4.4 + 4.7)/2`
+
+## **Rusult table:**
 <table>
 <tbody>
     <th>Language</th>
