@@ -173,7 +173,7 @@ Example from GO lang:
 
 `(1.8 + 2.1)/2 + (4.4 + 4.7)/2`
 
-## **Rusult table:**
+## **Result table:**
 <table>
 <tbody>
     <th>Language</th>
