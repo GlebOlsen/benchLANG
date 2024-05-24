@@ -1,0 +1,47 @@
+# Ignore all files by default
+*
+# Allow the .gitignore file itself
+!.gitignore
+
+# Allow directories (necessary to ensure we can include files within directories)
+!*/
+
+# Ada
+!*.adb
+!*.ads
+
+# C
+!*.c
+!*.h
+
+# C#
+*.cs
+!Program.cs
+
+# D
+!*.d
+
+# Go
+!*.go
+
+# Java
+!*.java
+
+# JavaScript
+!*.js
+!*.jsx
+
+# Nim
+!*.nim
+
+# Python
+!*.py
+
+# PHP
+!*.php
+
+# Rust
+!*.rs
+
+# Zig
+!*.zig

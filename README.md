@@ -2,35 +2,51 @@
 
 **Purpose:**
 
-To find out which programming language is better in terms of runtime than the others while doing the same task.
+To find out which programming language is "faster" in terms of runtime than the others while performing the same task.
 
 **Methodology:**
 
-This is a benchmark for runtime (in seconds) and cpusage (number of threads with 100% usage).
+This is a benchmark for runtime (in seconds) and cpu-usage (number of threads with 100% usage).
 
 **Benchmark type:**
 * Primes n = 10.000.000 
 * Fibonacci n = 45
 
 **PC specs:**
-* Arch 6.3.8 i3-wm
+* Debian 6.1.90-1 i3-wm
 * 5900X 48gb ram with 3600mhz and 16cl
 
 **Computer power mode:**
 
-`sudo cpupower frequency-set -g performance`
+`sudo cpupower frequency-set -g powersave` - This makes the CPU run at 2.2 Ghz.
 
 <br/>
 <hr/>
 
-## **Language benchmarks:**
-Results are from 2023 summer 06/2023:
+## **Programming language benchmarks:**
+Results are from 2024 summer:
 
 <br/>
 
+## **Ada lang:**
+
+**Verison:** GNATMAKE 12.2.0
+
+Command:
+
+`gnatmake file.adb`
+
+### **Restults:**
+
+* **Primes:** 3.92 - 4.26 sec (2 + threads looked like)
+
+* **Fibonacci:** 15.31 - 15.34 sec (1 thread)
+
+<br />
+
 ## **C lang:**
 
-**Verison:** GCC 13.1.1
+**Verison:** gcc version 12.2.0 
 
 Command:
 
@@ -38,9 +54,74 @@ Command:
 
 ### **Restults:**
 
-* **Primes:** 1.2 - 1.5 sec (2 + threads looked like)
+* **Primes:** 3.49 - 3.61 sec (2 + threads looked like)
 
-* **Fibonacci:** 1.12 - 1.15 sec (1 thread)
+* **Fibonacci:** 2.48 - 2.49 sec (1 thread)
+
+
+<br />
+
+## **D lang:**
+
+**Verison:** GCC 12.2.0 (gdc)
+
+Command:
+
+`gdc file.d -o file`
+
+### **Restults:**
+
+* **Primes:** 3.73 - 3.84 sec (2 + threads looked like)
+
+* **Fibonacci:** 9.59 - 9.62 sec (1 thread)
+
+<br />
+
+## **JS lang:**
+
+**Verison:** Node v21.7.3
+
+Command:
+
+`node file.js`
+
+### **Restults:**
+
+* **Primes:** 7.09 - 7.51 sec (2 + threads looked like)
+
+* **Fibonacci:** 18.51 - 18.57 sec (1 thread)
+
+<br />
+
+## **Nim lang:**
+
+**Verison:** Nim Compiler Version 1.6.10
+
+Command:
+
+`nim compile --run file.nim`
+
+### **Restults:**
+
+* **Primes:** 5.09 - 5.36 sec (2 + threads looked like)
+
+* **Fibonacci:** 47.45 - 47.81 sec (1 thread)
+
+<br />
+
+## **Zig lang:**
+
+**Verison:** zig 0.12.0
+
+Command:
+
+`zig build-exe file.zig`
+
+### **Restults:**
+
+* **Primes:** 5.37 - 5.57 sec (2 + threads looked like)
+
+* **Fibonacci:** 12.06 - 12.5 sec (1 thread)
 
 <br />
 
@@ -54,16 +135,16 @@ Command:
 
 ### **Restults:**
 
-* **Primes:** 1.3 - 1.5 sec (2 + threads looked like)
+* **Primes:** 3.36 - 3.59 sec (2 + threads looked like)
 
-* **Fibonacci:** 2.3 - 2.4 sec (1 thread)
+* **Fibonacci:** 5.57 - 5.61 sec (1 thread)
 
 
 <br/>
 
 ## **GO lang:**
 
-**Verison:** go1.20.5
+**Verison:** go version go1.19.8
 
 Command:
 
@@ -72,15 +153,15 @@ Command:
 
 ### **Restults:**
 
-* **Primes:** 1.8 - 2.1 sec (2 + threads looked like)
+* **Primes:** 4.91 - 5.05 sec (2 + threads looked like)
 
-* **Fibonacci:** 4.4 - 4.7 sec (1 thread)
+* **Fibonacci:** 8.86 - 8.94 sec (1 thread)
 
 <br/>
 
 ## **Java lang:**
 
-**Verison:** openjdk 20.0.1
+**Verison:** openjdk javac 17.0.11
 
 Command:
 
@@ -89,15 +170,15 @@ Command:
 
 ### **Restults:**
 
-* **Primes:** 1.3 - 1.7 sec (2 + threads looked like)
+* **Primes:** 3.66 - 3.87 sec (2 + threads looked like)
 
-* **Fibonacci:** 3.5 - 3.7 sec (1 thread)
+* **Fibonacci:** 5.41 - 5.66 sec (1 thread)
 
 <br/>
 
 ## **C# lang:**
 
-**Verison:** dotnet 7.0.105
+**Verison:** dotnet 8.0.300
 
 Command:
 
@@ -109,15 +190,15 @@ dotnet run Program.cs
 
 ### **Restults:**
 
-* **Primes:** 1.6 - 2.1 sec (2 + threads looked like)
+* **Primes:** 4.90 - 5.17 (2 + threads looked like)
 
-* **Fibonacci:** 7.2 - 7.7 sec (1 thread)
+* **Fibonacci:** 15.86 - 15.95 sec (1 thread)
 
 <br/>
 
 ## **PHP lang:**
 
-**Verison:** PHP 8.2.7
+**Verison:** PHP 8.2.18
 
 Command:
 
@@ -126,15 +207,15 @@ Command:
 
 ### **Restults:**
 
-* **Primes:** 8.4 - 8.9 sec (2 + threads looked like)
+* **Primes:** 13.03 - 13.34 sec (2 + threads looked like)
 
-* **Fibonacci:** 81 - 83 sec (1 thread)
+* **Fibonacci:** 86.04 - 88.27 sec (1 thread)
 
 <br/>
 
 ## **Python lang:**
-
-**Verison:** Python 3.11.3
+264.215
+**Verison:** Python 3.11.2
 
 Command:
 
@@ -142,9 +223,9 @@ Command:
 
 ### **Restults:**
 
-* **Primes:** 18.2 - 18.9 sec (2 + threads looked like)
+* **Primes:** 41.97 - 42.08 sec (2 + threads looked like)
 
-* **Fibonacci:** 101 - 103 sec (1 thread)
+* **Fibonacci:** 220.57 - 223.81 sec (1 thread)
 
 <hr/>
 
@@ -152,28 +233,29 @@ Command:
 
 What language is better?
 
-Based on the runtime, cpuusage, ease to program, online documentation and relevance:
+<p>¯\_(ツ)_/¯</p>
 
-1. **Both C or Rust:** Both are balanced so it's up to the dev's taste.
-* **C lang:** Easier types, fast compile time, and lots of documentation **but** relevance is nonexistent and boomer language.
-* **Rust Lang:** Safer (if you use it) alternative to C, very relevant hyped language **but** takes a little longer to write than C.
+* I would say C or Rust for fast stuff.
 
-2. **GO:** Really easy language and fast at the same time has lots of documentation mostly for bulding backends.
+* GO, C#, Java or JS for some stuff.
 
-3. **Both C# or Java:** while Java is faster C# offers more features and is much easier to write than C# but setting up C# was really hard and unesseasry.
+* Python for prototyping.
 
-4. **Python:** Really slow but really useful because it's easy to write and has the ability to get stuff done fast like a prototype. 
+Notes:
 
-5. **Php:** Really slow language has a bunch of documentation easy to setup.
+* Nim has extremely long compile times... Rust is faster but still slow compile times.
+* Use GO instead of D, don't even bother with that lang for now.
+* Zig is hype. 
 
+## Calculation: 
 **(Runtime is combined time of both benchmarks)**
-
 
 Example from GO lang:
 
-`(1.8 + 2.1)/2 + (4.4 + 4.7)/2`
+`(1.8 + 2.1)/2 + (4.4 + 4.7)/2` i.e: `(p_low + p_high)/2 + (f_low + f_high)/2`
 
 ## **Result table:**
+"Difficulty" part of the table is based on the runtime, cpu usage, ease to program, compile time, online documentation and other.
 <table>
 <tbody>
     <th>Language</th>
@@ -181,38 +263,62 @@ Example from GO lang:
     <th>Difficulty</th>
   <tr>
     <td>C:</td>
-    <td>2.485 sec</td>
-    <td>Medium</td>
-  </tr>
-  <tr>
-    <td>Rust</td>
-    <td>3.75 sec</td>
-    <td>Hardest</td>
-  </tr>
-  <tr>
-    <td>Java:</td>
-    <td>4.35 sec</td>
+    <td>6.035 sec</td>
     <td>Hard</td>
   </tr>
   <tr>
-    <td>GO:</td>
-    <td>6.5 sec</td>
-    <td>Easy</td>
+    <td>Rust</td>
+    <td>9.065 sec</td>
+    <td>Hard</td>
   </tr>
-
   <tr>
-    <td>C#</td>
+    <td>Java:</td>
     <td>9.3 sec</td>
     <td>Hard</td>
   </tr>
   <tr>
+    <td>D:</td>
+    <td>13.39 sec</td>
+    <td>Medium</td>
+  </tr>
+  <tr>
+    <td>GO:</td>
+    <td>13.87 sec</td>
+    <td>Easy</td>
+  </tr>
+  <tr>
+    <td>Zig:</td>
+    <td>17.75 sec</td>
+    <td>Insanity</td>
+  </tr>
+  <tr>
+    <td>Ada:</td>
+    <td>19.415 sec</td>
+    <td>Hard</td>
+  </tr>
+  <tr>
+  <tr>
+    <td>C#</td>
+    <td>20.939 sec</td>
+    <td>Hard</td>
+  </tr>
+  <tr>
+    <td>JS:</td>
+    <td>25.84 sec</td>
+    <td>Easy</td>
+  </tr>
+    <td>Nim:</td>
+    <td>52.855 sec</td>
+    <td>Hard</td>
+  </tr>
+  <tr>
     <td>php:</td>
-    <td>90.65 sec</td>
+    <td>100.34 sec</td>
     <td>Medium</td>
   </tr>
   <tr>
     <td>python:</td>
-    <td>120.55 sec</td>
+    <td>264.215 sec</td>
     <td>Easiest</td>
   </tr>
 </tbody>
