@@ -46,5 +46,5 @@
 # Zig
 !*.zig
 
-# Zig
+# OCaml
 !*.ml
