@@ -25,8 +25,7 @@ The goal is to have a controlled environment. By clocking the CPU to a specific 
 <br/>
 <hr/>
 
-## **Programming language benchmarks:**
-Results are from 2024 summer:
+
 
 <br/>
 
@@ -92,6 +91,20 @@ Command:
 * **Primes:** 3.84 - 3.88 sec (2 + threads looked like)
 
 * **Fibonacci:** 11.38 - 11.46 sec (1 thread)
+
+### **With diff runtime:**
+
+**Verison:** Node v21.7.3
+
+Command:
+
+`node file.js`
+
+### **Restults:**
+
+* **Primes:** 7.09 - 7.51 sec (2 + threads looked like)
+
+* **Fibonacci:** 18.51 - 18.57 sec (1 thread)
 
 <br />
 
@@ -262,6 +275,21 @@ Command:
 
 * **Fibonacci:** 21.27 - 21.47 sec (1 thread)
 
+### **With diff runtime:**
+
+**Verison:** Python3 3.11.2
+
+Command:
+
+`python3 file.py`
+
+### **Restults:**
+
+* **Primes:** 41.97 - 42.08 sec (2 + threads looked like)
+
+* **Fibonacci:** 220.57 - 223.81 sec (1 thread)
+
+
 <hr/>
 
 
@@ -292,6 +320,8 @@ Example from GO lang:
 
 ## **Result table:**
 "Difficulty" part of the table is based on the runtime, cpu usage, ease to program, compile time, online documentation and other.
+
+Results are from 2024 summer:
 <table>
 <tbody>
     <th>Language</th>
@@ -343,16 +373,21 @@ Example from GO lang:
     <td>Hard</td>
   </tr>
   <tr>
-  <tr>
-    <td>JS:</td>
+    <td>JS (Bun):</td>
     <td>15.28 sec</td>
     <td>Very easy</td>
   </tr>
   <tr>
-    <td>python:</td>
+    <td>python (pypy3):</td>
     <td>25.65 sec</td>
     <td>Easiest</td>
   </tr>
+    <tr>
+    <td>JS (Node):</td>
+    <td>25.84 sec</td>
+    <td>Easy</td>
+  </tr>
+  <tr>
     <td>Nim:</td>
     <td>51.075 sec</td>
     <td>Hard</td>
@@ -361,6 +396,11 @@ Example from GO lang:
     <td>php:</td>
     <td>99.33 sec</td>
     <td>Medium</td>
+  </tr>
+    <tr>
+    <td>python (python3):</td>
+    <td>264.215 sec</td>
+    <td>Easiest</td>
   </tr>
 </tbody>
 </table>
