@@ -248,7 +248,7 @@ Command:
 
 Command:
 
-`ocamlopt -O3 -unsafe -nodynlink unix.cmxa file.ml -o file`
+`ocamlopt -O3 -nodynlink unix.cmxa file.ml -o file`
 
 ### **Restults:**
 
