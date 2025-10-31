@@ -4,29 +4,30 @@
 
 To find out which programming language is "faster" in terms of runtime than the others while performing the same task.
 
-**Methodology:**
+## **Methodology:**
 
 This is a benchmark for runtime (in seconds) and cpu-usage (number of threads with 100% usage).
 
 The goal is to have a controlled environment. By clocking the CPU to a specific frequency and running as few services on the machinme to test all the languages with optimization parameters.
 
 **Benchmark type:**
-* Primes n = 10.000.000 
+* Primes n = 10.000.000
 * Fibonacci n = 45
 
 **PC specs:**
-* Debian 6.1.90-1 i3-wm
+* Arch i3-wm (Bloated i3)
 * 5900X 48gb ram with 3600mhz and 16cl
 
 **Computer power mode:**
 
-`sudo cpupower frequency-set -g powersave` - This makes the CPU run at 2.2 Ghz.
+`sudo cpupower frequency-set -g performance`
+```
+sudo cpupower frequency-set --max 3200Mhz
+sudo cpupower frequency-set --min 3200Mhz
+```
+**(This makes the CPU run at 3.2 Ghz.)**
 
 <br/>
-<hr/>
-
-
-
 <br/>
 
 ## **Ada lang:**
@@ -35,7 +36,7 @@ The goal is to have a controlled environment. By clocking the CPU to a specific 
 
 Command:
 
-`gnatmake -O3 file.adb`
+`gnatmake -O3 -funroll-loops -finline-functions -flto -march=native file.adb`
 
 ### **Restults:**
 
@@ -47,7 +48,7 @@ Command:
 
 ## **C lang:**
 
-**Verison:** gcc version 12.2.0 
+**Verison:** gcc version 12.2.0
 
 Command:
 
@@ -68,7 +69,7 @@ Command:
 
 Command:
 
-`gdc -O3 fib.d -o fib`
+`gdc -O3 -ffast-math -funroll-loops fib.d -o fib`
 
 ### **Restults:**
 
@@ -84,7 +85,7 @@ Command:
 
 Command:
 
-`bun file.js`
+`bun build file.js --compile --outfile file`
 
 ### **Restults:**
 
@@ -113,7 +114,7 @@ Command:
 **Verison:** Nim Compiler Version 1.6.10
 
 Command:
-`nim c -d:release --passC:"-flto" --passC:"-march=native" file.nim`
+`nim c -d:release -d:lto --passC:"-O3" --passC:"-flto" --passC:"-march=native" --passC:"-mtune=native" --passL:"-flto" file.nim`
 
 ### **Restults:**
 
@@ -132,7 +133,7 @@ Command:
 
 Command:
 
-`zig build-exe -OReleaseFast file.zig`
+`zig build-exe -OReleaseFast -mcpu=native fib.zig`
 
 ### **Restults:**
 
@@ -148,7 +149,7 @@ Command:
 
 Command:
 
-`rustc -C opt-level=3 -C lto=thin -C target-cpu=native -C codegen-units=1 fib.rs`
+`rustc -C opt-level=3 -C lto=fat -C target-cpu=native -C codegen-units=1 -C panic=abort file.rs`
 
 ### **Restults:**
 
@@ -165,7 +166,7 @@ Command:
 
 Command:
 
-`go build -ldflags="-s -w" file.go`
+`CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -buildmode=exe file.go`
 
 ### **Restults:**
 
@@ -181,11 +182,6 @@ Command:
 
 Command:
 `javac file.java`
-
-then:
-
-`java -XX:+UseParallelGC -Xms1g -Xmx4g file`
-
 
 ### **Restults:**
 
@@ -203,18 +199,7 @@ Command:
 
 
 ```
-dotnet new console
 dotnet run Program.cs
-
-In my case:
-
-dotnet publish file.csproj -c Release -r linux-x64 -p:PublishReadyToRun=true -p:PublishTrimmed=true --self-contained
-
-cd bin/Release/net8.0/linux-x64/publish
-
-Then:
-
-./Project_name / folder name
 ```
 
 ### **Restults:**

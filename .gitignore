@@ -3,7 +3,6 @@
 # Allow the .gitignore file itself
 !.gitignore
 
-# Allow directories (necessary to ensure we can include files within directories)
 !*/
 
 # Ada
@@ -48,3 +47,11 @@
 
 # OCaml
 !*.ml
+
+# Fortran
+!*.f90
+
+# Pascal
+!*.pas
+
+!*.sh
