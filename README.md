@@ -36,7 +36,7 @@ Results are from October 2025:
     <th>Runtime</th>
   <tr>
     <td>C:</td>
-    <td>3.272 sec</td>
+    <td>3.246 sec</td>
   </tr>
   <tr>
     <td>D:</td>
