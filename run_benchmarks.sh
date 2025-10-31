@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#SCRIPT WRITTEN BY AI but the compile / run commands are written by me (plus they have to be tweaked for each setup before I nixify the setup.).
+
 set -e  # Exit on error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,7 +29,7 @@ run_benchmark() {
     local compile_cmd=$3
     local run_cmd=$4
     local version_cmd=$5
-    local iterations=${6:-3}
+    local iterations=${6:-1}
     
     echo -e "${BLUE}==================================================================${NC}"
     echo -e "${BLUE}  Running $lang_name Benchmark${NC}"
@@ -96,6 +98,33 @@ run_benchmark() {
 # Start benchmarking
 echo "Starting benchmarks at $(date)" | tee "$RESULTS_FILE"
 echo "" | tee -a "$RESULTS_FILE"
+
+# Ada Language
+if [ -d "$LANGUAGES_DIR/Ada" ] && command -v gnatmake &> /dev/null; then
+    run_benchmark "Ada" \
+        "$LANGUAGES_DIR/Ada" \
+        "gnatmake -O3 -funroll-loops -finline-functions -flto -march=native bench.adb" \
+        "./bench" \
+        "gnat --version"
+fi
+
+# Fortran Language (removed -ffast-math -flto flags for compatibility)
+if [ -d "$LANGUAGES_DIR/Fortran" ] && command -v gfortran &> /dev/null; then
+    run_benchmark "Fortran" \
+        "$LANGUAGES_DIR/Fortran" \
+        "gfortran -O3 -march=native -funroll-loops bench.f90 -o bench" \
+        "./bench" \
+        "gfortran --version"
+fi
+
+# Pascal Language
+if [ -d "$LANGUAGES_DIR/Pascal" ] && command -v fpc &> /dev/null; then
+    run_benchmark "Pascal" \
+        "$LANGUAGES_DIR/Pascal" \
+        "fpc -O3 bench.pas" \
+        "./bench" \
+        "fpc -i"
+fi
 
 # C Language
 if [ -d "$LANGUAGES_DIR/C" ]; then
@@ -187,21 +216,21 @@ if [ -d "$LANGUAGES_DIR/Python" ] && command -v pypy3 &> /dev/null; then
         "pypy3 --version"
 fi
 
-# # Python (CPython)
-# if [ -d "$LANGUAGES_DIR/Python" ] && command -v python3 &> /dev/null; then
-#     run_benchmark "Python (Python3)" \
-#         "$LANGUAGES_DIR/Python" \
-#         "" \
-#         "python3 bench.py"
-# fi
+# Python (CPython)
+if [ -d "$LANGUAGES_DIR/Python" ] && command -v python3 &> /dev/null; then
+    run_benchmark "Python (Python3)" \
+        "$LANGUAGES_DIR/Python" \
+        "" \
+        "python3 bench.py"
+fi
 
-# # PHP Language
-# if [ -d "$LANGUAGES_DIR/Php" ] && command -v php &> /dev/null; then
-#     run_benchmark "PHP" \
-#         "$LANGUAGES_DIR/Php" \
-#         "" \
-#         "php bench.php"
-# fi
+# PHP Language
+if [ -d "$LANGUAGES_DIR/Php" ] && command -v php &> /dev/null; then
+    run_benchmark "PHP" \
+        "$LANGUAGES_DIR/Php" \
+        "" \
+        "php bench.php"
+fi
 
 # Nim Language
 if [ -d "$LANGUAGES_DIR/Nim" ] && command -v nim &> /dev/null; then
@@ -219,33 +248,6 @@ if [ -d "$LANGUAGES_DIR/OCaml" ] && command -v ocamlopt &> /dev/null; then
         "ocamlopt -O3 -nodynlink unix.cmxa bench.ml -o bench" \
         "./bench" \
         "ocamlopt --version"
-fi
-
-# Ada Language
-if [ -d "$LANGUAGES_DIR/Ada" ] && command -v gnatmake &> /dev/null; then
-    run_benchmark "Ada" \
-        "$LANGUAGES_DIR/Ada" \
-        "gnatmake -O3 -funroll-loops -finline-functions -flto -march=native bench.adb" \
-        "./bench" \
-        "gnat --version"
-fi
-
-# Fortran Language
-if [ -d "$LANGUAGES_DIR/Fortran" ] && command -v gfortran &> /dev/null; then
-    run_benchmark "Fortran" \
-        "$LANGUAGES_DIR/Fortran" \
-        "gfortran -O3 -march=native -flto -funroll-loops -ffast-math bench.f90 -o bench" \
-        "./bench" \
-        "gfortran --version"
-fi
-
-# Pascal Language
-if [ -d "$LANGUAGES_DIR/Pascal" ] && command -v fpc &> /dev/null; then
-    run_benchmark "Pascal" \
-        "$LANGUAGES_DIR/Pascal" \
-        "fpc -O3 bench.pas" \
-        "./bench" \
-        "fpc -i"
 fi
 
 # Summary

@@ -1,27 +1,15 @@
-import java.util.*;
-
 public class bench {
     // Constants
     private static final int PRIMES_LIMIT = 20000000;
     private static final int FIBONACCI_N = 45;
-    private static final int MATRIX_SIZE = 2000;
-    private static final int MATRIX_RAND_MAX = 100;
-    private static final String SENTENCE = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
-    private static final int STRING_OPS = 200000000;
-    private static final int STRING_REDUCTION_FACTOR = 100;
-    private static final int SORT_SIZE = 10000000;
-    private static final int RAND_SEED = 42;
 
     public static void main(String[] args) {
-        System.out.println("=== COMPREHENSIVE PROGRAMMING LANGUAGE BENCHMARK ===\n");
+        System.out.println("=== PROGRAMMING LANGUAGE BENCHMARK ===\n");
         
         long totalStart = System.currentTimeMillis();
         
         benchmarkPrimes();
         benchmarkFibonacci();
-        benchmarkMatrixMultiplication();
-        benchmarkSorting();
-        benchmarkStringOperations();
         
         long totalEnd = System.currentTimeMillis();
         
@@ -78,89 +66,5 @@ public class bench {
         
         long end = System.currentTimeMillis();
         System.out.printf("Fibonacci(%d) = %d in %.3f seconds%n%n", FIBONACCI_N, result, (end - start) / 1000.0);
-    }
-
-    // 3. Matrix multiplication
-    private static void benchmarkMatrixMultiplication() {
-        System.out.printf("Running Matrix Multiplication Benchmark (%dx%d)...%n", MATRIX_SIZE, MATRIX_SIZE);
-        long start = System.currentTimeMillis();
-        
-        Random rand = new Random(RAND_SEED);
-        int n = MATRIX_SIZE;
-        int elems = n * n;
-        double[] a = new double[elems];
-        double[] b = new double[elems];
-        double[] c = new double[elems];
-        
-        // Initialize matrices
-        for (int i = 0; i < elems; i++) {
-            a[i] = rand.nextInt(MATRIX_RAND_MAX);
-            b[i] = rand.nextInt(MATRIX_RAND_MAX);
-            c[i] = 0;
-        }
-        
-        // Matrix multiplication (ijk order for cache efficiency)
-        for (int i = 0; i < n; i++) {
-            for (int k = 0; k < n; k++) {
-                double aik = a[i * n + k];
-                for (int j = 0; j < n; j++) {
-                    c[i * n + j] += aik * b[k * n + j];
-                }
-            }
-        }
-        
-        long end = System.currentTimeMillis();
-        System.out.printf("Matrix multiplication completed in %.3f seconds%n%n", (end - start) / 1000.0);
-    }
-
-    // 4. Sorting
-    private static void benchmarkSorting() {
-        System.out.printf("Running Sorting Benchmark (%d elements)...%n", SORT_SIZE);
-        long start = System.currentTimeMillis();
-        
-        Random rand = new Random(RAND_SEED);
-        int[] arr = new int[SORT_SIZE];
-        
-        for (int i = 0; i < SORT_SIZE; i++) {
-            arr[i] = rand.nextInt();
-        }
-        
-        Arrays.sort(arr);
-        
-        long end = System.currentTimeMillis();
-        System.out.printf("Sorting completed in %.3f seconds%n%n", (end - start) / 1000.0);
-    }
-
-    // 5. String operations
-    private static void benchmarkStringOperations() {
-        System.out.printf("Running String Operations Benchmark (%d operations)...%n", STRING_OPS);
-        long start = System.currentTimeMillis();
-        
-        String sentence = SENTENCE;
-        StringBuilder result = new StringBuilder();
-        
-        for (int i = 0; i < STRING_OPS / STRING_REDUCTION_FACTOR; i++) {
-            result.append(sentence);
-        }
-        
-        // Dynamic word extraction and searching (matching C's O(n*m) behavior)
-        String resultString = result.toString();
-        String[] words = sentence.split(" ");
-        
-        int totalFound = 0;
-        for (String word : words) {
-            int foundCount = 0;
-            // Manual string search to match C's strstr behavior
-            for (int i = 0; i <= resultString.length() - word.length(); i++) {
-                if (resultString.substring(i, i + word.length()).equals(word)) {
-                    foundCount++;
-                }
-            }
-            totalFound += foundCount;
-        }
-        
-        long end = System.currentTimeMillis();
-        System.out.printf("String operations completed in %.3f seconds (found %d word instances)%n%n",
-                (end - start) / 1000.0, totalFound);
     }
 }
