@@ -30,7 +30,7 @@ sudo cpupower frequency-set --min 3500Mhz
 <br/>
 ## **Results:**
 
-Results are from November 2025:
+Results are from October 2025:
 <table>
 <tbody>
     <th>Language</th>
@@ -41,139 +41,139 @@ Results are from November 2025:
     <th>String Operations</th>
   <tr>
     <td>C<br/>(GCC 15.2.1)</td>
-    <td>4.554 sec</td>
+    <td>6.401 sec</td>
     <td>1.00x</td>
-    <td>1.925 sec</td>
-    <td>1.322 sec</td>
-    <td>1.308 sec</td>
+    <td>2.719 sec</td>
+    <td>1.803 sec</td>
+    <td>1.879 sec</td>
   </tr>
   <tr>
     <td>D<br/>(gdc 15.2.1)</td>
-    <td>5.140 sec</td>
-    <td>1.13x</td>
-    <td>1.929 sec</td>
-    <td>1.324 sec</td>
-    <td>1.887 sec</td>
+    <td>7.168 sec</td>
+    <td>1.12x</td>
+    <td>2.728 sec</td>
+    <td>1.827 sec</td>
+    <td>2.614 sec</td>
   </tr>
   <tr>
     <td>Zig<br/>(0.16.0-dev)</td>
-    <td>5.269 sec</td>
-    <td>1.16x</td>
-    <td>1.928 sec</td>
-    <td>2.392 sec</td>
-    <td>0.949 sec</td>
+    <td>7.332 sec</td>
+    <td>1.15x</td>
+    <td>2.726 sec</td>
+    <td>3.301 sec</td>
+    <td>1.305 sec</td>
   </tr>
   <tr>
     <td>Nim<br/>(2.2.4)</td>
-    <td>6.462 sec</td>
-    <td>1.42x</td>
-    <td>2.241 sec</td>
-    <td>1.176 sec</td>
-    <td>3.046 sec</td>
+    <td>8.997 sec</td>
+    <td>1.41x</td>
+    <td>3.165 sec</td>
+    <td>1.628 sec</td>
+    <td>4.204 sec</td>
   </tr>
   <tr>
     <td>Ada<br/>(GNAT 15.2.1)</td>
-    <td>7.324 sec</td>
-    <td>1.61x</td>
-    <td>1.938 sec</td>
-    <td>3.935 sec</td>
-    <td>1.452 sec</td>
+    <td>10.154 sec</td>
+    <td>1.59x</td>
+    <td>2.731 sec</td>
+    <td>5.417 sec</td>
+    <td>2.007 sec</td>
   </tr>
   <tr>
     <td>Rust<br/>(1.90.0)</td>
-    <td>7.431 sec</td>
-    <td>1.63x</td>
-    <td>1.927 sec</td>
-    <td>2.524 sec</td>
-    <td>2.981 sec</td>
+    <td>10.345 sec</td>
+    <td>1.62x</td>
+    <td>2.724 sec</td>
+    <td>3.498 sec</td>
+    <td>4.122 sec</td>
   </tr>
   <tr>
     <td>Fortran<br/>(GCC 15.2.1)</td>
-    <td>9.184 sec</td>
-    <td>2.02x</td>
-    <td>1.932 sec</td>
-    <td>2.566 sec</td>
-    <td>4.686 sec</td>
+    <td>13.113 sec</td>
+    <td>2.05x</td>
+    <td>2.717 sec</td>
+    <td>3.544 sec</td>
+    <td>6.851 sec</td>
   </tr>
   <tr>
     <td>GO<br/>(1.25.3)</td>
-    <td>9.928 sec</td>
-    <td>2.18x</td>
-    <td>2.249 sec</td>
-    <td>4.372 sec</td>
-    <td>3.307 sec</td>
+    <td>13.872 sec</td>
+    <td>2.17x</td>
+    <td>3.173 sec</td>
+    <td>6.088 sec</td>
+    <td>4.611 sec</td>
   </tr>
   <tr>
     <td>Pascal<br/>(FPC 3.2.2)</td>
-    <td>10.840 sec</td>
-    <td>2.38x</td>
-    <td>2.302 sec</td>
-    <td>4.307 sec</td>
-    <td>4.231 sec</td>
+    <td>15.014 sec</td>
+    <td>2.35x</td>
+    <td>3.247 sec</td>
+    <td>5.940 sec</td>
+    <td>5.827 sec</td>
   </tr>
   <tr>
     <td>Java<br/>(OpenJDK 25.0.1)</td>
-    <td>12.221 sec</td>
-    <td>2.68x</td>
-    <td>1.944 sec</td>
-    <td>2.877 sec</td>
-    <td>7.388 sec</td>
+    <td>16.602 sec</td>
+    <td>2.59x</td>
+    <td>2.729 sec</td>
+    <td>3.940 sec</td>
+    <td>9.917 sec</td>
   </tr>
   <tr>
     <td>JS (Bun)<br/>(1.3.1)</td>
-    <td>13.360 sec</td>
-    <td>2.93x</td>
-    <td>1.962 sec</td>
-    <td>5.858 sec</td>
-    <td>5.540 sec</td>
+    <td>18.338 sec</td>
+    <td>2.86x</td>
+    <td>2.768 sec</td>
+    <td>8.042 sec</td>
+    <td>7.528 sec</td>
   </tr>
   <tr>
     <td>JS (Node)<br/>(v24.7.0)</td>
-    <td>20.721 sec</td>
-    <td>4.55x</td>
-    <td>1.961 sec</td>
-    <td>8.618 sec</td>
-    <td>10.142 sec</td>
+    <td>30.838 sec</td>
+    <td>4.82x</td>
+    <td>2.760 sec</td>
+    <td>13.305 sec</td>
+    <td>14.772 sec</td>
   </tr>
   <tr>
     <td>OCaml<br/>(5.3.0)</td>
-    <td>28.365 sec</td>
-    <td>6.23x</td>
-    <td>2.290 sec</td>
-    <td>3.889 sec</td>
-    <td>22.186 sec</td>
+    <td>40.104 sec</td>
+    <td>6.27x</td>
+    <td>3.238 sec</td>
+    <td>5.428 sec</td>
+    <td>31.438 sec</td>
   </tr>
   <tr>
     <td>C#<br/>(.NET 10.0.100)</td>
-    <td>31.273 sec</td>
-    <td>6.87x</td>
-    <td>2.142 sec</td>
-    <td>7.690 sec</td>
-    <td>21.433 sec</td>
+    <td>40.880 sec</td>
+    <td>6.39x</td>
+    <td>2.936 sec</td>
+    <td>10.503 sec</td>
+    <td>27.430 sec</td>
   </tr>
   <tr>
     <td>Python (PyPy3)<br/>(3.11.13)</td>
-    <td>36.510 sec</td>
-    <td>8.02x</td>
-    <td>2.454 sec</td>
-    <td>9.354 sec</td>
-    <td>24.701 sec</td>
+    <td>49.546 sec</td>
+    <td>7.74x</td>
+    <td>3.362 sec</td>
+    <td>12.404 sec</td>
+    <td>33.780 sec</td>
   </tr>
   <tr>
     <td>PHP<br/>(8.4.14)</td>
-    <td>143.640 sec</td>
-    <td>31.54x</td>
-    <td>16.086 sec</td>
-    <td>51.307 sec</td>
-    <td>76.247 sec</td>
+    <td>203.260 sec</td>
+    <td>31.75x</td>
+    <td>22.213 sec</td>
+    <td>72.447 sec</td>
+    <td>108.600 sec</td>
   </tr>
   <tr>
     <td>Python3<br/>(3.13.7)</td>
-    <td>253.658 sec</td>
-    <td>55.70x</td>
-    <td>68.666 sec</td>
-    <td>98.441 sec</td>
-    <td>86.552 sec</td>
+    <td>354.365 sec</td>
+    <td>55.36x</td>
+    <td>94.789 sec</td>
+    <td>137.847 sec</td>
+    <td>121.729 sec</td>
   </tr>
 </tbody>
 </table>
