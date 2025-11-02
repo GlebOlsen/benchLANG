@@ -35,7 +35,7 @@ Results are from November 2025:
 <tbody>
     <th>Language</th>
     <th>Total Runtime</th>
-    <th>Factor to 1st</th>
+    <th>Factor of "slowness"</th>
     <th>Primes</th>
     <th>Fibonacci</th>
     <th>String Operations</th>
