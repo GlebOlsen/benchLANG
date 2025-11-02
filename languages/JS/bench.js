@@ -1,5 +1,6 @@
 const PRIMES_LIMIT = 20000000;
 const FIBONACCI_N = 45;
+const SENTENCE = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
 
 // Optimized prime checking function
 function isPrime(n) {
@@ -48,6 +49,55 @@ function benchmarkFibonacci() {
     console.log(`Fibonacci(${FIBONACCI_N}) = ${result} in ${elapsed.toFixed(3)} seconds\n`);
 }
 
+// 3. String benchmark
+function benchmarkStrings() {
+    console.log("Running String Benchmark...");
+    const start = Date.now();
+    
+    const words = SENTENCE.split(' ');
+    const wordsCount = words.length;
+    let matchCount = 0;
+    let reverseCount = 0;
+    
+    for (let i = 0; i < PRIMES_LIMIT; i++) {
+        const currentWord = words[i % wordsCount];
+        
+        // Compare current word against all other words
+        for (const otherWord of words) {
+            if (currentWord === otherWord) {
+                matchCount++;
+            }
+        }
+        
+        // Extract and reverse each word from sentence
+        let currentChars = [];
+        for (let k = 0; k < SENTENCE.length; k++) {
+            if (SENTENCE[k] === ' ') {
+                if (currentChars.length > 0) {
+                    // Reverse the word
+                    for (let rev = 0; rev < currentChars.length; rev++) {
+                        const temp = currentChars[currentChars.length - 1 - rev];
+                    }
+                    reverseCount += currentChars.length;
+                    currentChars = [];
+                }
+            } else {
+                currentChars.push(SENTENCE[k]);
+            }
+        }
+        // Handle last word
+        if (currentChars.length > 0) {
+            for (let rev = 0; rev < currentChars.length; rev++) {
+                const temp = currentChars[currentChars.length - 1 - rev];
+            }
+            reverseCount += currentChars.length;
+        }
+    }
+    
+    const elapsed = (Date.now() - start) / 1000;
+    console.log(`Matches: ${matchCount}, reverse char count: ${reverseCount} in ${elapsed.toFixed(3)} seconds\n`);
+}
+
 // Main
 (function main() {
     console.log("=== PROGRAMMING LANGUAGE BENCHMARK ===\n");
@@ -55,6 +105,7 @@ function benchmarkFibonacci() {
     
     benchmarkPrimes();
     benchmarkFibonacci();
+    benchmarkStrings();
     
     const totalElapsed = (Date.now() - totalStart) / 1000;
     console.log("=== BENCHMARK COMPLETE ===");

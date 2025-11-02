@@ -4,6 +4,7 @@ using System.Diagnostics;
 // Constants
 const int PRIMES_LIMIT = 20000000;
 const int FIBONACCI_N = 45;
+const string SENTENCE = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
 
 Console.WriteLine("=== PROGRAMMING LANGUAGE BENCHMARK ===\n");
 
@@ -11,6 +12,7 @@ Stopwatch totalStopwatch = Stopwatch.StartNew();
 
 BenchmarkPrimes();
 BenchmarkFibonacci();
+BenchmarkStrings();
 
 totalStopwatch.Stop();
 
@@ -66,4 +68,52 @@ static void BenchmarkFibonacci() {
     
     stopwatch.Stop();
     Console.WriteLine($"Fibonacci({FIBONACCI_N}) = {result} in {stopwatch.Elapsed.TotalSeconds:F3} seconds\n");
+}
+
+// 3. String benchmark
+static void BenchmarkStrings() {
+    Console.WriteLine("Running String Benchmark...");
+    Stopwatch stopwatch = Stopwatch.StartNew();
+
+    string[] words = SENTENCE.Split(' ');
+    int wordsCount = words.Length;
+    long matchCount = 0;
+    long reverseCount = 0;
+
+    for (int i = 0; i < PRIMES_LIMIT; i++) {
+        string currentWord = words[i % wordsCount];
+        
+        // Compare current word against all other words
+        foreach (string otherWord in words) {
+            if (currentWord == otherWord) {
+                matchCount++;
+            }
+        }
+        
+        // Extract and reverse each word from sentence
+        System.Text.StringBuilder currentChars = new System.Text.StringBuilder();
+        foreach (char c in SENTENCE) {
+            if (c == ' ') {
+                if (currentChars.Length > 0) {
+                    char[] charArray = currentChars.ToString().ToCharArray();
+                    Array.Reverse(charArray);
+                    string reverseWord = new string(charArray);
+                    reverseCount += reverseWord.Length;
+                    currentChars.Clear();
+                }
+            } else {
+                currentChars.Append(c);
+            }
+        }
+        // Handle last word
+        if (currentChars.Length > 0) {
+            char[] charArray = currentChars.ToString().ToCharArray();
+            Array.Reverse(charArray);
+            string reverseWord = new string(charArray);
+            reverseCount += reverseWord.Length;
+        }
+    }
+
+    stopwatch.Stop();
+    Console.WriteLine($"Matches: {matchCount}, reverse char count: {reverseCount} in {stopwatch.Elapsed.TotalSeconds:F3} seconds\n");
 }

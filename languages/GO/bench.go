@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
 const (
 	PRIMES_LIMIT = 20000000
 	FIBONACCI_N  = 45
+	SENTENCE     = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again"
 )
 
 // Prime check (unchanged logic)
@@ -37,11 +39,58 @@ func benchmarkFibonacci() {
 	fmt.Printf("Fibonacci(%d) = %d in %.3f seconds\n\n", FIBONACCI_N, r, time.Since(start).Seconds())
 }
 
+func benchmarkStrings() {
+	fmt.Println("Running String Benchmark...")
+	start := time.Now()
+	words := strings.Fields(SENTENCE)
+	wordsCount := len(words)
+	var matchCount int64 = 0
+	var reverseCount int64 = 0
+	
+	for i := 0; i < PRIMES_LIMIT; i++ {
+		currentWord := words[i%wordsCount]
+		
+		// Compare current word against all other words
+		for _, otherWord := range words {
+			if currentWord == otherWord {
+				matchCount++
+			}
+		}
+		
+		// Extract and reverse each word from sentence
+		currentChars := make([]rune, 0, 20)
+		for _, c := range SENTENCE {
+			if c == ' ' {
+				if len(currentChars) > 0 {
+					// Reverse the word
+					for j := 0; j < len(currentChars); j++ {
+						_ = currentChars[len(currentChars)-1-j]
+					}
+					reverseCount += int64(len(currentChars))
+					currentChars = currentChars[:0]
+				}
+			} else {
+				currentChars = append(currentChars, c)
+			}
+		}
+		// Handle last word
+		if len(currentChars) > 0 {
+			for j := 0; j < len(currentChars); j++ {
+				_ = currentChars[len(currentChars)-1-j]
+			}
+			reverseCount += int64(len(currentChars))
+		}
+	}
+	
+	fmt.Printf("Matches: %d, reverse char count: %d in %.3f seconds\n\n", matchCount, reverseCount, time.Since(start).Seconds())
+}
+
 func main() {
 	fmt.Println("=== PROGRAMMING LANGUAGE BENCHMARK ===\n")
 	total := time.Now()
 	benchmarkPrimes()
 	benchmarkFibonacci()
+	benchmarkStrings()
 	fmt.Println("=== BENCHMARK COMPLETE ===")
 	fmt.Printf("Total execution time: %.3f seconds\n", time.Since(total).Seconds())
 }

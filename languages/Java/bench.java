@@ -2,6 +2,7 @@ public class bench {
     // Constants
     private static final int PRIMES_LIMIT = 20000000;
     private static final int FIBONACCI_N = 45;
+    private static final String SENTENCE = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
 
     public static void main(String[] args) {
         System.out.println("=== PROGRAMMING LANGUAGE BENCHMARK ===\n");
@@ -10,6 +11,7 @@ public class bench {
         
         benchmarkPrimes();
         benchmarkFibonacci();
+        benchmarkStrings();
         
         long totalEnd = System.currentTimeMillis();
         
@@ -66,5 +68,49 @@ public class bench {
         
         long end = System.currentTimeMillis();
         System.out.printf("Fibonacci(%d) = %d in %.3f seconds%n%n", FIBONACCI_N, result, (end - start) / 1000.0);
+    }
+
+    // 3. String benchmark
+    private static void benchmarkStrings() {
+        System.out.println("Running String Benchmark...");
+        long start = System.currentTimeMillis();
+
+        String[] words = SENTENCE.split(" ");
+        int wordsCount = words.length;
+        long matchCount = 0;
+        long reverseCount = 0;
+
+        for (int i = 0; i < PRIMES_LIMIT; i++) {
+            String currentWord = words[i % wordsCount];
+            
+            // Compare current word against all other words
+            for (String otherWord : words) {
+                if (currentWord.equals(otherWord)) {
+                    matchCount++;
+                }
+            }
+            
+            // Extract and reverse each word from sentence
+            StringBuilder currentChars = new StringBuilder();
+            for (char c : SENTENCE.toCharArray()) {
+                if (c == ' ') {
+                    if (currentChars.length() > 0) {
+                        String reverseWord = currentChars.reverse().toString();
+                        reverseCount += reverseWord.length();
+                        currentChars = new StringBuilder();
+                    }
+                } else {
+                    currentChars.append(c);
+                }
+            }
+            // Handle last word
+            if (currentChars.length() > 0) {
+                String reverseWord = currentChars.reverse().toString();
+                reverseCount += reverseWord.length();
+            }
+        }
+
+        long end = System.currentTimeMillis();
+        System.out.printf("Matches: %d, reverse char count: %d in %.3f seconds%n%n", matchCount, reverseCount, (end - start) / 1000.0);
     }
 }

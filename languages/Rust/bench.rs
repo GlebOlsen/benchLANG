@@ -3,12 +3,14 @@ use std::time::Instant;
 // Constants
 const PRIMES_LIMIT: u32 = 20_000_000;
 const FIBONACCI_N: i32 = 45;
+const SENTENCE: &str = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
 
 fn main() {
     println!("=== PROGRAMMING LANGUAGE BENCHMARK ===\n");
     let total_start = Instant::now();
     benchmark_primes();
     benchmark_fibonacci();
+    benchmark_strings();
     let total_elapsed = total_start.elapsed();
     println!("=== BENCHMARK COMPLETE ===");
     println!("Total execution time: {:.3} seconds", total_elapsed.as_secs_f64());
@@ -67,4 +69,53 @@ fn benchmark_fibonacci() {
     
     let elapsed = start.elapsed();
     println!("Fibonacci({}) = {} in {:.3} seconds\n", FIBONACCI_N, result, elapsed.as_secs_f64());
+}
+
+// 3. String benchmark
+fn benchmark_strings() {
+    println!("Running String Benchmark...");
+    let start = Instant::now();
+    
+    let words: Vec<&str> = SENTENCE.split_whitespace().collect();
+    let words_count = words.len();
+    let mut match_count: i64 = 0;
+    let mut reverse_count: i64 = 0;
+    
+    for i in 0..PRIMES_LIMIT {
+        let current_word = words[(i as usize) % words_count];
+        
+        // Compare current word against all other words
+        for other_word in &words {
+            if current_word == *other_word {
+                match_count += 1;
+            }
+        }
+        
+        // Extract and reverse each word from sentence
+        let mut current_chars = Vec::new();
+        for c in SENTENCE.chars() {
+            if c == ' ' {
+                if !current_chars.is_empty() {
+                    // Reverse the word
+                    for j in 0..current_chars.len() {
+                        let _ = current_chars[current_chars.len() - 1 - j];
+                    }
+                    reverse_count += current_chars.len() as i64;
+                    current_chars.clear();
+                }
+            } else {
+                current_chars.push(c);
+            }
+        }
+        // Handle last word
+        if !current_chars.is_empty() {
+            for j in 0..current_chars.len() {
+                let _ = current_chars[current_chars.len() - 1 - j];
+            }
+            reverse_count += current_chars.len() as i64;
+        }
+    }
+    
+    let elapsed = start.elapsed();
+    println!("Matches: {}, reverse char count: {} in {:.3} seconds\n", match_count, reverse_count, elapsed.as_secs_f64());
 }

@@ -1,15 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #define PRIMES_LIMIT 20000000
 #define FIBONACCI_N 45
+#define SENTENCE "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again"
 
 double get_time_diff(clock_t start, clock_t end);
 int is_prime(int n);
 void benchmark_primes();
 int fib(int n);
 void benchmark_fibonacci();
+void benchmark_strings();
 
 double get_time_diff(clock_t start, clock_t end) {
     return ((double)(end - start)) / CLOCKS_PER_SEC;
@@ -60,7 +63,68 @@ void benchmark_fibonacci() {
     int result = fib(FIBONACCI_N);
 
     clock_t end = clock();
-        printf("Fibonacci(%d) = %d in %.3f seconds\n\n", FIBONACCI_N, result, get_time_diff(start, end));
+    printf("Fibonacci(%d) = %d in %.3f seconds\n\n", FIBONACCI_N, result, get_time_diff(start, end));
+}
+
+void benchmark_strings() {
+    printf("Running String Benchmark...\n");
+    clock_t start = clock();
+    
+    // Split sentence into words
+    char sentence_copy[256];
+    strcpy(sentence_copy, SENTENCE);
+    char *words[50];
+    int words_count = 0;
+    
+    char *token = strtok(sentence_copy, " ");
+    while (token != NULL) {
+        words[words_count++] = token;
+        token = strtok(NULL, " ");
+    }
+    
+    long long match_count = 0;
+    long long reverse_count = 0;
+    
+    for (int i = 0; i < PRIMES_LIMIT; i++) {
+        char *current_word = words[i % words_count];
+        
+        // Compare current word against all other words
+        for (int j = 0; j < words_count; j++) {
+            if (strcmp(current_word, words[j]) == 0) {
+                match_count++;
+            }
+        }
+        
+        // Extract and reverse each word from sentence
+        char current_chars[100];
+        int char_idx = 0;
+        for (int k = 0; SENTENCE[k] != '\0'; k++) {
+            if (SENTENCE[k] == ' ') {
+                if (char_idx > 0) {
+                    // Reverse the word
+                    for (int rev = 0; rev < char_idx; rev++) {
+                        char temp = current_chars[char_idx - 1 - rev];
+                        (void)temp; // Use temp to prevent optimization
+                    }
+                    reverse_count += char_idx;
+                    char_idx = 0;
+                }
+            } else {
+                current_chars[char_idx++] = SENTENCE[k];
+            }
+        }
+        // Handle last word
+        if (char_idx > 0) {
+            for (int rev = 0; rev < char_idx; rev++) {
+                char temp = current_chars[char_idx - 1 - rev];
+                (void)temp;
+            }
+            reverse_count += char_idx;
+        }
+    }
+    
+    clock_t end = clock();
+    printf("Matches: %lld, reverse char count: %lld in %.3f seconds\n\n", match_count, reverse_count, get_time_diff(start, end));
 }
 
 int main() {
@@ -70,6 +134,7 @@ int main() {
 
     benchmark_primes();
     benchmark_fibonacci();
+    benchmark_strings();
 
     clock_t total_end = clock();
 

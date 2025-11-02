@@ -13,6 +13,7 @@ The goal is to have a controlled environment. By clocking the CPU to a specific 
 **Benchmark type:**
 * Prime Numbers: Find all primes up to 20,000,000
 * Fibonacci: Recursive calculation of Fibonacci(45)
+* String Operations: 20M iterations of word comparison and character reversal operations
 
 **PC specs:**
 * Arch i3-wm (Bloated i3)
@@ -29,78 +30,132 @@ sudo cpupower frequency-set --min 3500Mhz
 <br/>
 ## **Results:**
 
-Results are from October 2025:
+Results are from November 2025:
 <table>
 <tbody>
     <th>Language</th>
-    <th>Runtime</th>
+    <th>Total Runtime</th>
+    <th>Primes</th>
+    <th>Fibonacci</th>
+    <th>String Operations</th>
   <tr>
     <td>C:</td>
-    <td>3.246 sec</td>
+    <td>4.554 sec</td>
+    <td>1.925 sec</td>
+    <td>1.322 sec</td>
+    <td>1.308 sec</td>
   </tr>
   <tr>
     <td>D:</td>
-    <td>3.254 sec</td>
-  </tr>
-  <tr>
-    <td>Nim:</td>
-    <td>3.375 sec</td>
-  </tr>
-  <tr>
-    <td>Rust:</td>
-    <td>4.236 sec</td>
+    <td>5.140 sec</td>
+    <td>1.929 sec</td>
+    <td>1.324 sec</td>
+    <td>1.887 sec</td>
   </tr>
   <tr>
     <td>Zig:</td>
-    <td>4.341 sec</td>
+    <td>5.269 sec</td>
+    <td>1.928 sec</td>
+    <td>2.392 sec</td>
+    <td>0.949 sec</td>
   </tr>
   <tr>
-    <td>Java:</td>
-    <td>4.853 sec</td>
-  </tr>
-  <tr>
-    <td>OCaml:</td>
-    <td>6.284 sec</td>
-  </tr>
-  <tr>
-    <td>Pascal:</td>
-    <td>6.622 sec</td>
-  </tr>
-  <tr>
-    <td>GO:</td>
-    <td>6.669 sec</td>
-  </tr>
-  <tr>
-    <td>JS (Bun):</td>
-    <td>7.946 sec</td>
-  </tr>
-  <tr>
-    <td>C#:</td>
-    <td>10.223 sec</td>
-  </tr>
-  <tr>
-    <td>JS (Node):</td>
-    <td>10.644 sec</td>
-  </tr>
-  <tr>
-    <td>Python (PyPy3):</td>
-    <td>11.581 sec</td>
-  </tr>
-  <tr>
-    <td>PHP:</td>
-    <td>70.558 sec</td>
-  </tr>
-  <tr>
-    <td>Python3:</td>
-    <td>169.853 sec</td>
+    <td>Nim:</td>
+    <td>6.462 sec</td>
+    <td>2.241 sec</td>
+    <td>1.176 sec</td>
+    <td>3.046 sec</td>
   </tr>
   <tr>
     <td>Ada:</td>
-    <td>Optimized away (1.941 sec)</td>
+    <td>7.324 sec</td>
+    <td>1.938 sec</td>
+    <td>3.935 sec</td>
+    <td>1.452 sec</td>
+  </tr>
+  <tr>
+    <td>Rust:</td>
+    <td>7.431 sec</td>
+    <td>1.927 sec</td>
+    <td>2.524 sec</td>
+    <td>2.981 sec</td>
   </tr>
   <tr>
     <td>Fortran:</td>
-    <td>Optimized away (1.926 sec)</td>
+    <td>9.184 sec</td>
+    <td>1.932 sec</td>
+    <td>2.566 sec</td>
+    <td>4.686 sec</td>
+  </tr>
+  <tr>
+    <td>GO:</td>
+    <td>9.928 sec</td>
+    <td>2.249 sec</td>
+    <td>4.372 sec</td>
+    <td>3.307 sec</td>
+  </tr>
+  <tr>
+    <td>Pascal:</td>
+    <td>10.840 sec</td>
+    <td>2.302 sec</td>
+    <td>4.307 sec</td>
+    <td>4.231 sec</td>
+  </tr>
+  <tr>
+    <td>Java:</td>
+    <td>12.221 sec</td>
+    <td>1.944 sec</td>
+    <td>2.877 sec</td>
+    <td>7.388 sec</td>
+  </tr>
+  <tr>
+    <td>JS (Bun):</td>
+    <td>13.360 sec</td>
+    <td>1.962 sec</td>
+    <td>5.858 sec</td>
+    <td>5.540 sec</td>
+  </tr>
+  <tr>
+    <td>JS (Node):</td>
+    <td>21.457 sec</td>
+    <td>1.982 sec</td>
+    <td>8.617 sec</td>
+    <td>10.857 sec</td>
+  </tr>
+  <tr>
+    <td>OCaml:</td>
+    <td>28.365 sec</td>
+    <td>2.290 sec</td>
+    <td>3.889 sec</td>
+    <td>22.186 sec</td>
+  </tr>
+  <tr>
+    <td>C#:</td>
+    <td>31.273 sec</td>
+    <td>2.142 sec</td>
+    <td>7.690 sec</td>
+    <td>21.433 sec</td>
+  </tr>
+  <tr>
+    <td>Python (PyPy3):</td>
+    <td>36.510 sec</td>
+    <td>2.454 sec</td>
+    <td>9.354 sec</td>
+    <td>24.701 sec</td>
+  </tr>
+  <tr>
+    <td>PHP:</td>
+    <td>143.640 sec</td>
+    <td>16.086 sec</td>
+    <td>51.307 sec</td>
+    <td>76.247 sec</td>
+  </tr>
+  <tr>
+    <td>Python3:</td>
+    <td>253.658 sec</td>
+    <td>68.666 sec</td>
+    <td>98.441 sec</td>
+    <td>86.552 sec</td>
   </tr>
 </tbody>
 </table>

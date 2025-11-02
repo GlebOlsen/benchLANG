@@ -2,6 +2,7 @@ import time
 
 PRIMES_LIMIT = 20_000_000
 FIBONACCI_N = 45
+SENTENCE = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again"
 
 def is_prime(n: int) -> bool:
     if n <= 1: return False
@@ -30,11 +31,45 @@ def benchmark_fibonacci():
     result = fib(FIBONACCI_N)
     print(f"Fibonacci({FIBONACCI_N}) = {result} in {time.time()-start:.3f} seconds\n")
 
+def benchmark_strings():
+    print(f"Running String Benchmark...")
+    start = time.time()
+    words = SENTENCE.split()
+    words_count = len(words)
+    match_count = 0
+    reverse_count = 0
+    
+    for i in range(PRIMES_LIMIT):
+        current_word = words[i % words_count]
+        
+        # Compare current word against all other words
+        for other_word in words:
+            if current_word == other_word:
+                match_count += 1
+        
+        # Extract and reverse each word from sentence
+        current_chars = ""
+        for c in SENTENCE:
+            if c == ' ':
+                if len(current_chars) > 0:
+                    reverse_word = current_chars[::-1]
+                    reverse_count += len(reverse_word)
+                    current_chars = ""
+            else:
+                current_chars += c
+        # Handle last word
+        if len(current_chars) > 0:
+            reverse_word = current_chars[::-1]
+            reverse_count += len(reverse_word)
+    
+    print(f"Matches: {match_count}, reverse char count: {reverse_count} in {time.time()-start:.3f} seconds\n")
+
 def main():
     print("=== PROGRAMMING LANGUAGE BENCHMARK ===\n")
     total = time.time()
     benchmark_primes()
     benchmark_fibonacci()
+    benchmark_strings()
     print("=== BENCHMARK COMPLETE ===")
     print(f"Total execution time: {time.time()-total:.3f} seconds")
 

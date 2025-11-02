@@ -2,6 +2,7 @@ const std = @import("std");
 
 const PRIMES_LIMIT: u32 = 20_000_000;
 const FIBONACCI_N: i32 = 45;
+const SENTENCE: []const u8 = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
 
 pub fn main() !void {
     const stdout = std.debug.print;
@@ -11,6 +12,7 @@ pub fn main() !void {
 
     try benchmarkPrimes();
     try benchmarkFibonacci();
+    try benchmarkStrings();
 
     const total_end = std.time.milliTimestamp();
 
@@ -61,4 +63,64 @@ fn benchmarkFibonacci() !void {
 
     const end = std.time.milliTimestamp();
     stdout("Fibonacci({}) = {} in {d:.3} seconds\n\n", .{ FIBONACCI_N, result, @as(f64, @floatFromInt(end - start)) / 1000.0 });
+}
+
+fn benchmarkStrings() !void {
+    const stdout = std.debug.print;
+    stdout("Running String Benchmark...\n", .{});
+    const start = std.time.milliTimestamp();
+
+    var words: [20][]const u8 = undefined;
+    var words_count: usize = 0;
+    var iter = std.mem.tokenizeScalar(u8, SENTENCE, ' ');
+    while (iter.next()) |word| {
+        words[words_count] = word;
+        words_count += 1;
+    }
+
+    var match_count: u64 = 0;
+    var reverse_count: u64 = 0;
+
+    var i: u32 = 0;
+    while (i < PRIMES_LIMIT) : (i += 1) {
+        const current_word = words[i % words_count];
+
+        // Compare current word against all other words
+        for (words[0..words_count]) |other_word| {
+            if (std.mem.eql(u8, current_word, other_word)) {
+                match_count += 1;
+            }
+        }
+
+        // Extract and reverse each word from sentence
+        var current_chars: [100]u8 = undefined;
+        var char_idx: usize = 0;
+        for (SENTENCE) |c| {
+            if (c == ' ') {
+                if (char_idx > 0) {
+                    // Reverse the word
+                    var rev_idx: usize = 0;
+                    while (rev_idx < char_idx) : (rev_idx += 1) {
+                        _ = current_chars[char_idx - 1 - rev_idx];
+                    }
+                    reverse_count += char_idx;
+                    char_idx = 0;
+                }
+            } else {
+                current_chars[char_idx] = c;
+                char_idx += 1;
+            }
+        }
+        // Handle last word
+        if (char_idx > 0) {
+            var rev_idx: usize = 0;
+            while (rev_idx < char_idx) : (rev_idx += 1) {
+                _ = current_chars[char_idx - 1 - rev_idx];
+            }
+            reverse_count += char_idx;
+        }
+    }
+
+    const end = std.time.milliTimestamp();
+    stdout("Matches: {}, reverse char count: {} in {d:.3} seconds\n\n", .{ match_count, reverse_count, @as(f64, @floatFromInt(end - start)) / 1000.0 });
 }
