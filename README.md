@@ -40,7 +40,7 @@ Results are from November 2025:
     <th>Fibonacci</th>
     <th>String Operations</th>
   <tr>
-    <td>C:</td>
+    <td>C<br/>(GCC 15.2.1)</td>
     <td>4.554 sec</td>
     <td>1.00x</td>
     <td>1.925 sec</td>
@@ -48,7 +48,7 @@ Results are from November 2025:
     <td>1.308 sec</td>
   </tr>
   <tr>
-    <td>D:</td>
+    <td>D<br/>(gdc 15.2.1)</td>
     <td>5.140 sec</td>
     <td>1.13x</td>
     <td>1.929 sec</td>
@@ -56,7 +56,7 @@ Results are from November 2025:
     <td>1.887 sec</td>
   </tr>
   <tr>
-    <td>Zig:</td>
+    <td>Zig<br/>(0.16.0-dev)</td>
     <td>5.269 sec</td>
     <td>1.16x</td>
     <td>1.928 sec</td>
@@ -64,7 +64,7 @@ Results are from November 2025:
     <td>0.949 sec</td>
   </tr>
   <tr>
-    <td>Nim:</td>
+    <td>Nim<br/>(2.2.4)</td>
     <td>6.462 sec</td>
     <td>1.42x</td>
     <td>2.241 sec</td>
@@ -72,7 +72,7 @@ Results are from November 2025:
     <td>3.046 sec</td>
   </tr>
   <tr>
-    <td>Ada:</td>
+    <td>Ada<br/>(GNAT 15.2.1)</td>
     <td>7.324 sec</td>
     <td>1.61x</td>
     <td>1.938 sec</td>
@@ -80,7 +80,7 @@ Results are from November 2025:
     <td>1.452 sec</td>
   </tr>
   <tr>
-    <td>Rust:</td>
+    <td>Rust<br/>(1.90.0)</td>
     <td>7.431 sec</td>
     <td>1.63x</td>
     <td>1.927 sec</td>
@@ -88,7 +88,7 @@ Results are from November 2025:
     <td>2.981 sec</td>
   </tr>
   <tr>
-    <td>Fortran:</td>
+    <td>Fortran<br/>(GCC 15.2.1)</td>
     <td>9.184 sec</td>
     <td>2.02x</td>
     <td>1.932 sec</td>
@@ -96,7 +96,7 @@ Results are from November 2025:
     <td>4.686 sec</td>
   </tr>
   <tr>
-    <td>GO:</td>
+    <td>GO<br/>(1.25.3)</td>
     <td>9.928 sec</td>
     <td>2.18x</td>
     <td>2.249 sec</td>
@@ -104,7 +104,7 @@ Results are from November 2025:
     <td>3.307 sec</td>
   </tr>
   <tr>
-    <td>Pascal:</td>
+    <td>Pascal<br/>(FPC 3.2.2)</td>
     <td>10.840 sec</td>
     <td>2.38x</td>
     <td>2.302 sec</td>
@@ -112,7 +112,7 @@ Results are from November 2025:
     <td>4.231 sec</td>
   </tr>
   <tr>
-    <td>Java:</td>
+    <td>Java<br/>(OpenJDK 25.0.1)</td>
     <td>12.221 sec</td>
     <td>2.68x</td>
     <td>1.944 sec</td>
@@ -120,7 +120,7 @@ Results are from November 2025:
     <td>7.388 sec</td>
   </tr>
   <tr>
-    <td>JS (Bun):</td>
+    <td>JS (Bun)<br/>(1.3.1)</td>
     <td>13.360 sec</td>
     <td>2.93x</td>
     <td>1.962 sec</td>
@@ -128,15 +128,15 @@ Results are from November 2025:
     <td>5.540 sec</td>
   </tr>
   <tr>
-    <td>JS (Node):</td>
-    <td>21.457 sec</td>
-    <td>4.71x</td>
-    <td>1.982 sec</td>
-    <td>8.617 sec</td>
-    <td>10.857 sec</td>
+    <td>JS (Node)<br/>(v24.7.0)</td>
+    <td>20.721 sec</td>
+    <td>4.55x</td>
+    <td>1.961 sec</td>
+    <td>8.618 sec</td>
+    <td>10.142 sec</td>
   </tr>
   <tr>
-    <td>OCaml:</td>
+    <td>OCaml<br/>(5.3.0)</td>
     <td>28.365 sec</td>
     <td>6.23x</td>
     <td>2.290 sec</td>
@@ -144,7 +144,7 @@ Results are from November 2025:
     <td>22.186 sec</td>
   </tr>
   <tr>
-    <td>C#:</td>
+    <td>C#<br/>(.NET 10.0.100)</td>
     <td>31.273 sec</td>
     <td>6.87x</td>
     <td>2.142 sec</td>
@@ -152,7 +152,7 @@ Results are from November 2025:
     <td>21.433 sec</td>
   </tr>
   <tr>
-    <td>Python (PyPy3):</td>
+    <td>Python (PyPy3)<br/>(3.11.13)</td>
     <td>36.510 sec</td>
     <td>8.02x</td>
     <td>2.454 sec</td>
@@ -160,7 +160,7 @@ Results are from November 2025:
     <td>24.701 sec</td>
   </tr>
   <tr>
-    <td>PHP:</td>
+    <td>PHP<br/>(8.4.14)</td>
     <td>143.640 sec</td>
     <td>31.54x</td>
     <td>16.086 sec</td>
@@ -168,7 +168,7 @@ Results are from November 2025:
     <td>76.247 sec</td>
   </tr>
   <tr>
-    <td>Python3:</td>
+    <td>Python3<br/>(3.13.7)</td>
     <td>253.658 sec</td>
     <td>55.70x</td>
     <td>68.666 sec</td>
