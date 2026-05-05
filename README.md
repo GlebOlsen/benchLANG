@@ -98,6 +98,7 @@ nix develop                  # enter shell with all toolchains pinned
 
 <br/>
 <a id="results"></a>
+
 ## **Results:**
 
 Results are from May 2026 (averaged over 3 runs per language):
