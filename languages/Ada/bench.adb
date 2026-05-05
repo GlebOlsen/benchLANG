@@ -1,12 +1,98 @@
-with Ada.Text_IO, Ada.Real_Time, Ada.Command_Line;
-use Ada.Text_IO, Ada.Real_Time;
+with Ada.Text_IO;              use Ada.Text_IO;
+with Ada.Calendar;             use Ada.Calendar;
+with Ada.Unchecked_Deallocation;
+with Interfaces;               use Interfaces;
 
 procedure Bench is
+   PRIMES_LIMIT    : constant := 20_000_000;
+   FIBONACCI_N     : constant := 45;
+   STRING_ITER     : constant := 5_000_000;
+   MANDEL_W        : constant := 4096;
+   MANDEL_H        : constant := 4096;
+   MANDEL_MAX_ITER : constant := 256;
+   TREE_MIN_DEPTH  : constant := 4;
+   TREE_MAX_DEPTH  : constant := 18;
+   SENTENCE        : constant String :=
+     "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
 
-   -- Constants
-   PRIMES_LIMIT : constant := 20_000_000;
-   FIBONACCI_N : Integer;
-   SENTENCE : constant String := "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
+   type Tree_Node;
+   type Tree_Access is access Tree_Node;
+   type Tree_Node is record
+      Left, Right : Tree_Access := null;
+      Item        : Long_Long_Integer := 0;
+   end record;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Tree_Node, Tree_Access);
+
+   function Make_Tree (Item : Long_Long_Integer; Depth : Integer) return Tree_Access is
+      N : Tree_Access := new Tree_Node;
+   begin
+      N.Item := Item;
+      if Depth = 0 then
+         N.Left := null;
+         N.Right := null;
+         return N;
+      end if;
+      N.Left  := Make_Tree (2 * Item - 1, Depth - 1);
+      N.Right := Make_Tree (2 * Item, Depth - 1);
+      return N;
+   end Make_Tree;
+
+   function Check_Tree (N : Tree_Access) return Long_Long_Integer is
+   begin
+      if N.Left = null then
+         return N.Item;
+      end if;
+      return N.Item + Check_Tree (N.Left) - Check_Tree (N.Right);
+   end Check_Tree;
+
+   procedure Free_Tree (N : in out Tree_Access) is
+   begin
+      if N.Left /= null then
+         Free_Tree (N.Left);
+         Free_Tree (N.Right);
+      end if;
+      Free (N);
+   end Free_Tree;
+
+   procedure Bench_Binary_Trees is
+      Start      : Time;
+      Checksum   : Long_Long_Integer := 0;
+      Sum        : Long_Long_Integer;
+      Stretch    : Tree_Access;
+      Long_Lived : Tree_Access;
+      T          : Tree_Access;
+      Iters      : Integer;
+      D          : Integer;
+   begin
+      Start := Clock;
+
+      Stretch := Make_Tree (0, TREE_MAX_DEPTH + 1);
+      Checksum := Checksum + Check_Tree (Stretch);
+      Free_Tree (Stretch);
+
+      Long_Lived := Make_Tree (0, TREE_MAX_DEPTH);
+
+      D := TREE_MIN_DEPTH;
+      while D <= TREE_MAX_DEPTH loop
+         Iters := 2 ** (TREE_MAX_DEPTH - D + TREE_MIN_DEPTH);
+         Sum := 0;
+         for I in 0 .. Iters - 1 loop
+            T := Make_Tree (Long_Long_Integer (I + 1), D);
+            Sum := Sum + Check_Tree (T);
+            Free_Tree (T);
+         end loop;
+         Checksum := Checksum + Sum;
+         D := D + 2;
+      end loop;
+
+      Checksum := Checksum + Check_Tree (Long_Lived);
+      Free_Tree (Long_Lived);
+
+      Put_Line ("BinaryTrees: checksum=" & Long_Long_Integer'Image (Checksum) &
+                " in" & Duration'Image (Clock - Start) & " seconds");
+      New_Line;
+   end Bench_Binary_Trees;
 
    function Is_Prime(N : Integer) return Boolean is
       I : Integer := 5;
@@ -14,167 +100,125 @@ procedure Bench is
       if N <= 1 then return False; end if;
       if N <= 3 then return True; end if;
       if N mod 2 = 0 or N mod 3 = 0 then return False; end if;
-      
-      while I * I <= N loop
-         if N mod I = 0 or N mod (I + 2) = 0 then
-            return False;
-         end if;
+      while Long_Integer(I) * Long_Integer(I) <= Long_Integer(N) loop
+         if N mod I = 0 or N mod (I + 2) = 0 then return False; end if;
          I := I + 6;
       end loop;
       return True;
    end Is_Prime;
 
-   procedure Benchmark_Primes is
-      Start_Time, End_Time : Time;
-      Count : Integer := 0;
+   procedure Bench_Primes is
+      Start : Time;
+      C     : Integer := 0;
    begin
-      Put_Line("Running Prime Numbers Benchmark (up to" & PRIMES_LIMIT'Image & ")...");
-      Start_Time := Clock;
-      
+      Start := Clock;
       for I in 2 .. PRIMES_LIMIT - 1 loop
-         if Is_Prime(I) then
-            Count := Count + 1;
-         end if;
+         if Is_Prime(I) then C := C + 1; end if;
       end loop;
-      
-      End_Time := Clock;
-      Put_Line("Found" & Count'Image & " primes in" & 
-               Duration'Image(To_Duration(End_Time - Start_Time)) & " seconds");
+      Put_Line("Found" & Integer'Image(C) & " primes in" &
+               Duration'Image(Clock - Start) & " seconds");
       New_Line;
-   end Benchmark_Primes;
+   end Bench_Primes;
 
-   function Fib(N : Integer) return Integer is
+   function Fib(N : Integer) return Long_Long_Integer is
    begin
-      if N <= 1 then
-         return N;
-      else
-         return Fib(N - 1) + Fib(N - 2);
-      end if;
+      if N <= 1 then return Long_Long_Integer(N); end if;
+      return Fib(N - 1) + Fib(N - 2);
    end Fib;
-   pragma No_Inline(Fib);
 
-   procedure Benchmark_Fibonacci is
-      Start_Time, End_Time : Time;
-      Result : Integer;
+   procedure Bench_Fib_Rec is
+      Start : Time;
+      R     : Long_Long_Integer;
    begin
-      Put_Line("Running Fibonacci Benchmark (n=" & FIBONACCI_N'Image & ", recursive)...");
-      Start_Time := Clock;
-      
-      Result := Fib(FIBONACCI_N);
-      
-      End_Time := Clock;
-      Put_Line("Fibonacci(" & FIBONACCI_N'Image & ") =" & Result'Image & " in" &
-               Duration'Image(To_Duration(End_Time - Start_Time)) & " seconds");
+      Start := Clock;
+      R := Fib(FIBONACCI_N);
+      Put_Line("Fibonacci(" & Integer'Image(FIBONACCI_N) & ") =" &
+               Long_Long_Integer'Image(R) & " in" & Duration'Image(Clock - Start) & " seconds");
       New_Line;
-   end Benchmark_Fibonacci;
+   end Bench_Fib_Rec;
 
-   procedure Benchmark_Strings is
-      Start_Time, End_Time : Time;
-      Match_Count : Long_Long_Integer := 0;
-      Reverse_Count : Long_Long_Integer := 0;
-      Word_Start : Integer := 1;
-      Word_Count : Integer := 0;
-      Words : array (1..20) of Integer := (others => 1);
-      Word_Lens : array (1..20) of Integer := (others => 0);
-      Current_Chars : array (1..100) of Character;
-      Char_Idx : Integer;
-      Temp_Char : Character;
+   procedure Bench_Strings is
+      type String_Access is access String;
+      type Word_Array is array (Natural range <>) of String_Access;
+
+      Words  : Word_Array (0 .. 31);
+      WCount : Integer := 0;
+      Start  : Time;
+      Total  : Unsigned_64 := 0;
+      Count  : Unsigned_64;
    begin
-      Put_Line("Running String Benchmark...");
-      Start_Time := Clock;
-      
-      -- Split sentence into words (store positions and lengths)
-      for I in SENTENCE'Range loop
-         if SENTENCE(I) = ' ' then
-            Word_Count := Word_Count + 1;
-            Words(Word_Count) := Word_Start;
-            Word_Lens(Word_Count) := I - Word_Start;
-            Word_Start := I + 1;
-         end if;
-      end loop;
-      Word_Count := Word_Count + 1;
-      Words(Word_Count) := Word_Start;
-      Word_Lens(Word_Count) := SENTENCE'Length - Word_Start + 1;
-      
-      for I in 0 .. PRIMES_LIMIT - 1 loop
-         declare
-            Current_Word_Idx : constant Integer := (I mod Word_Count) + 1;
-            Current_Word_Start : constant Integer := Words(Current_Word_Idx);
-            Current_Word_Len : constant Integer := Word_Lens(Current_Word_Idx);
-         begin
-            -- Compare current word against all other words
-            for J in 1 .. Word_Count loop
-               declare
-                  Match : Boolean := True;
-               begin
-                  if Current_Word_Len = Word_Lens(J) then
-                     for K in 0 .. Current_Word_Len - 1 loop
-                        if SENTENCE(Current_Word_Start + K) /= SENTENCE(Words(J) + K) then
-                           Match := False;
-                           exit;
-                        end if;
-                     end loop;
-                     if Match then
-                        Match_Count := Match_Count + 1;
-                     end if;
-                  end if;
-               end;
+      Start := Clock;
+
+      declare
+         Pos : Integer := SENTENCE'First;
+         StartIdx : Integer;
+      begin
+         while Pos <= SENTENCE'Last loop
+            StartIdx := Pos;
+            while Pos <= SENTENCE'Last and then SENTENCE(Pos) /= ' ' loop
+               Pos := Pos + 1;
             end loop;
-         end;
-         
-         -- Extract and reverse each word from sentence
-         Char_Idx := 0;
-         for K in SENTENCE'Range loop
-            if SENTENCE(K) = ' ' then
-               if Char_Idx > 0 then
-                  -- Reverse the word
-                  for Rev in 0 .. Char_Idx - 1 loop
-                     Temp_Char := Current_Chars(Char_Idx - Rev);
-                  end loop;
-                  Reverse_Count := Reverse_Count + Long_Long_Integer(Char_Idx);
-                  Char_Idx := 0;
-               end if;
-            else
-               Char_Idx := Char_Idx + 1;
-               Current_Chars(Char_Idx) := SENTENCE(K);
-            end if;
+            Words(WCount) := new String'(SENTENCE(StartIdx .. Pos - 1));
+            WCount := WCount + 1;
+            while Pos <= SENTENCE'Last and then SENTENCE(Pos) = ' ' loop
+               Pos := Pos + 1;
+            end loop;
          end loop;
-         -- Handle last word
-         if Char_Idx > 0 then
-            for Rev in 0 .. Char_Idx - 1 loop
-               Temp_Char := Current_Chars(Char_Idx - Rev);
+      end;
+
+      for I in 0 .. STRING_ITER - 1 loop
+         for K in 0 .. WCount - 1 loop
+            Count := 0;
+            for J in 0 .. WCount - 1 loop
+               if Words(K).all = Words(J).all then Count := Count + 1; end if;
             end loop;
-            Reverse_Count := Reverse_Count + Long_Long_Integer(Char_Idx);
-         end if;
+            Total := Total + Count;
+         end loop;
       end loop;
-      
-      End_Time := Clock;
-      Put_Line("Matches:" & Match_Count'Image & ", reverse char count:" & Reverse_Count'Image & " in" &
-               Duration'Image(To_Duration(End_Time - Start_Time)) & " seconds");
+
+      Put_Line("Strings: total=" & Unsigned_64'Image(Total) &
+               " in" & Duration'Image(Clock - Start) & " seconds");
       New_Line;
-   end Benchmark_Strings;
+   end Bench_Strings;
 
-   Total_Start, Total_End : Time;
+   procedure Bench_Mandelbrot is
+      Start : Time;
+      Checksum : Long_Long_Integer := 0;
+      Cx, Cy, Zx, Zy, Nx : Long_Float;
+      Iter : Integer;
+   begin
+      Start := Clock;
+      for Py in 0 .. MANDEL_H - 1 loop
+         Cy := (Long_Float(Py) / Long_Float(MANDEL_H)) * 3.0 - 1.5;
+         for Px in 0 .. MANDEL_W - 1 loop
+            Cx := (Long_Float(Px) / Long_Float(MANDEL_W)) * 3.0 - 2.0;
+            Zx := 0.0;
+            Zy := 0.0;
+            Iter := 0;
+            while Iter < MANDEL_MAX_ITER and then Zx * Zx + Zy * Zy <= 4.0 loop
+               Nx := Zx * Zx - Zy * Zy + Cx;
+               Zy := 2.0 * Zx * Zy + Cy;
+               Zx := Nx;
+               Iter := Iter + 1;
+            end loop;
+            Checksum := Checksum + Long_Long_Integer(Iter);
+         end loop;
+      end loop;
+      Put_Line("Mandelbrot: checksum=" & Long_Long_Integer'Image(Checksum) &
+               " in" & Duration'Image(Clock - Start) & " seconds");
+      New_Line;
+   end Bench_Mandelbrot;
 
+   Total_Start : Time;
 begin
-   -- Prevent compile-time optimization of fibonacci
-   if Ada.Command_Line.Argument_Count > 0 then
-      FIBONACCI_N := Integer'Value(Ada.Command_Line.Argument(1));
-   else
-      FIBONACCI_N := 45;
-   end if;
-   
    Put_Line("=== PROGRAMMING LANGUAGE BENCHMARK ===");
    New_Line;
-   
    Total_Start := Clock;
-   
-   Benchmark_Primes;
-   Benchmark_Fibonacci;
-   Benchmark_Strings;
-   
-   Total_End := Clock;
+   Bench_Primes;
+   Bench_Fib_Rec;
+   Bench_Strings;
+   Bench_Mandelbrot;
+   Bench_Binary_Trees;
    Put_Line("=== BENCHMARK COMPLETE ===");
-   Put_Line("Total execution time:" & 
-            Duration'Image(To_Duration(Total_End - Total_Start)) & " seconds");
+   Put_Line("Total execution time:" & Duration'Image(Clock - Total_Start) & " seconds");
 end Bench;
