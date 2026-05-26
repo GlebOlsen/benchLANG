@@ -13,11 +13,11 @@ const
 
 proc fmtSec(s: float): string = formatFloat(s, ffDecimal, 3)
 
-proc isPrime(n: int): bool =
+proc isPrime(n: int32): bool =
   if n <= 1: return false
   if n <= 3: return true
   if n mod 2 == 0 or n mod 3 == 0: return false
-  var i = 5
+  var i: int32 = 5
   while i*i <= n:
     if n mod i == 0 or n mod (i+2) == 0: return false
     i += 6
@@ -26,7 +26,7 @@ proc isPrime(n: int): bool =
 proc benchPrimes() =
   let s = cpuTime()
   var c = 0
-  for i in 2 ..< PRIMES_LIMIT:
+  for i in int32(2) ..< int32(PRIMES_LIMIT):
     if isPrime(i): inc c
   echo "Found ", c, " primes in ", fmtSec(cpuTime()-s), " seconds\n"
 
