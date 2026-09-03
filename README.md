@@ -19,6 +19,7 @@ Every language runs the same five workloads, written the idiomatic way, one file
 * FMA contraction is off everywhere, so Mandelbrot is bit-identical.
 * Compiled languages use their fastest release mode, runtime checks off where the compiler allows. Managed runtimes keep their mandated checks, default settings, JIT warm-up inside the timed region.
 * `CPUx` = (user+sys)/wall, above 1.0 means extra runtime threads (GC, JIT).
+* Compile time is the wall time of the build command on a clean tree. The runner wipes every project-local artifact and cache first (binaries, nimcache, .zig-cache, .gocache, dotnet obj/out), so Go, Nim and Zig compile the standard library parts they use. Toolchain-level caches stay warm (Zig's global cache, NuGet). Two known outliers: Zig's first-ever build on a machine takes about 2 s longer while it fills its global cache, and the C# build takes about 2 s longer whenever NuGet refreshes its package index and vulnerability data from the network after its cache expires. Java's figure is javac only. Interpreters and JITs have nothing to compile.
 
 **Workloads:**
 * Primes: trial-division primality for every integer below 20,000,000
@@ -48,6 +49,7 @@ nix develop                   # enter shell with all toolchains pinned
 ./run_benchmarks.sh           # full sweep, 1 run/lang
 ./run_benchmarks.sh --runs 3  # 3 runs/lang, averaged in summary
 ./run_benchmarks.sh --only C,Rust,Zig
+./run_benchmarks.sh --compile-only  # build every compiled language, record compile times only
 ./analyze_results.sh          # re-print summary from latest results file
 ./clean.sh                    # remove build artifacts and the dotnet runfile cache
 ```
@@ -89,7 +91,7 @@ Everything comes from nixpkgs-unstable, no overlays, no vendored binaries. The d
 | **D (LDC)** | `ldc2 -O3 -release -mcpu=native -flto=full -fp-contract=off -L-s` |
 | **Rust** | `rustc -C opt-level=3 -C lto=fat -C target-cpu=native -C codegen-units=1 -C panic=abort -C strip=symbols` |
 | **Zig** | `zig build-exe -OReleaseFast -mcpu=native -fstrip -lc` |
-| **Go** | `GOAMD64=v3 CGO_ENABLED=0 go build -ldflags='-s -w' -trimpath` |
+| **Go** | `GOCACHE=$PWD/.gocache GOAMD64=v3 CGO_ENABLED=0 go build -ldflags='-s -w' -trimpath` |
 | **Nim** | `nim c --nimcache:nimcache -d:danger -d:lto --panics:on --passC:-march=native --passC:-ffp-contract=off --passL:-s` |
 | **OCaml** | `ocamlopt -O3 -unsafe -inline 200 -nodynlink monotonic.c -ccopt -s` (C stub: stdlib has no monotonic clock) |
 | **Java** | `javac bench.java` then `java bench` (default heap, default GC) |
@@ -107,7 +109,7 @@ Everything comes from nixpkgs-unstable, no overlays, no vendored binaries. The d
 
 ## **Results:**
 
-Results are from 3 September 2026 (one run per language). Peak RSS is whole-process peak resident memory from GNU `time`. Binary size is the stripped native executable, shown as - for languages that run on a separate runtime (JVM, .NET, Bun, Node, PHP, Python).
+Results are from 3 September 2026 (one run per language). Peak RSS is whole-process peak resident memory from GNU `time`. Binary size is the stripped native executable, shown as - for languages that run on a separate runtime (JVM, .NET, Bun, Node, PHP, Python). Compile time is the build command's wall time on a clean tree, shown as - where there is nothing to compile.
 <table>
 <tbody>
     <th>Language</th>
@@ -115,6 +117,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <th>Factor of "slowness"</th>
     <th>Peak RSS</th>
     <th>Binary Size</th>
+    <th>Compile Time</th>
     <th>Primes</th>
     <th>Fibonacci</th>
     <th>String Operations</th>
@@ -126,6 +129,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.00x</td>
     <td>33.3 MiB</td>
     <td>26 KiB</td>
+    <td>0.485 sec</td>
     <td>2.725 sec</td>
     <td>1.694 sec</td>
     <td>2.132 sec</td>
@@ -138,6 +142,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.02x</td>
     <td>35.4 MiB</td>
     <td>30 KiB</td>
+    <td>1.321 sec</td>
     <td>2.725 sec</td>
     <td>1.721 sec</td>
     <td>2.190 sec</td>
@@ -150,6 +155,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.05x</td>
     <td>51.5 MiB</td>
     <td>46 KiB</td>
+    <td>1.822 sec</td>
     <td>2.725 sec</td>
     <td>1.716 sec</td>
     <td>2.804 sec</td>
@@ -162,6 +168,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.06x</td>
     <td>33.7 MiB</td>
     <td>398 KiB</td>
+    <td>0.691 sec</td>
     <td>2.726 sec</td>
     <td>1.666 sec</td>
     <td>2.603 sec</td>
@@ -174,6 +181,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.10x</td>
     <td>33.7 MiB</td>
     <td>236 KiB</td>
+    <td>3.869 sec</td>
     <td>2.722 sec</td>
     <td>3.181 sec</td>
     <td>1.504 sec</td>
@@ -186,6 +194,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.12x</td>
     <td>34.4 MiB</td>
     <td>26 KiB</td>
+    <td>0.474 sec</td>
     <td>2.723 sec</td>
     <td>1.701 sec</td>
     <td>3.305 sec</td>
@@ -198,6 +207,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.21x</td>
     <td>34.0 MiB</td>
     <td>349 KiB</td>
+    <td>3.996 sec</td>
     <td>2.724 sec</td>
     <td>3.179 sec</td>
     <td>2.621 sec</td>
@@ -210,6 +220,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.22x</td>
     <td>122.1 MiB</td>
     <td>-</td>
+    <td>1.655 sec</td>
     <td>2.726 sec</td>
     <td>3.793 sec</td>
     <td>2.235 sec</td>
@@ -222,6 +233,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.39x</td>
     <td>987.8 MiB</td>
     <td>-</td>
+    <td>0.411 sec</td>
     <td>2.730 sec</td>
     <td>4.109 sec</td>
     <td>4.075 sec</td>
@@ -234,6 +246,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.40x</td>
     <td>97.6 MiB</td>
     <td>914 KiB</td>
+    <td>2.873 sec</td>
     <td>2.723 sec</td>
     <td>2.979 sec</td>
     <td>2.351 sec</td>
@@ -246,6 +259,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.57x</td>
     <td>60.4 MiB</td>
     <td>1564 KiB</td>
+    <td>2.247 sec</td>
     <td>2.726 sec</td>
     <td>6.075 sec</td>
     <td>2.532 sec</td>
@@ -258,6 +272,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>1.66x</td>
     <td>89.7 MiB</td>
     <td>1039 KiB</td>
+    <td>0.226 sec</td>
     <td>3.200 sec</td>
     <td>4.897 sec</td>
     <td>5.000 sec</td>
@@ -269,6 +284,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>16.732 sec</td>
     <td>1.71x</td>
     <td>336.1 MiB</td>
+    <td>-</td>
     <td>-</td>
     <td>2.759 sec</td>
     <td>7.735 sec</td>
@@ -282,6 +298,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>2.13x</td>
     <td>74.6 MiB</td>
     <td>5617 KiB</td>
+    <td>1.067 sec</td>
     <td>2.963 sec</td>
     <td>8.135 sec</td>
     <td>6.523 sec</td>
@@ -293,6 +310,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>20.973 sec</td>
     <td>2.15x</td>
     <td>266.9 MiB</td>
+    <td>-</td>
     <td>-</td>
     <td>2.771 sec</td>
     <td>11.668 sec</td>
@@ -306,6 +324,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>2.48x</td>
     <td>32.5 MiB</td>
     <td>502 KiB</td>
+    <td>0.118 sec</td>
     <td>3.249 sec</td>
     <td>5.933 sec</td>
     <td>11.254 sec</td>
@@ -317,6 +336,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>29.371 sec</td>
     <td>3.01x</td>
     <td>235.2 MiB</td>
+    <td>-</td>
     <td>-</td>
     <td>3.346 sec</td>
     <td>12.676 sec</td>
@@ -330,6 +350,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>4.60x</td>
     <td>153.9 MiB</td>
     <td>-</td>
+    <td>-</td>
     <td>3.306 sec</td>
     <td>21.076 sec</td>
     <td>7.812 sec</td>
@@ -341,6 +362,7 @@ Results are from 3 September 2026 (one run per language). Peak RSS is whole-proc
     <td>409.343 sec</td>
     <td>41.93x</td>
     <td>110.5 MiB</td>
+    <td>-</td>
     <td>-</td>
     <td>86.049 sec</td>
     <td>134.200 sec</td>

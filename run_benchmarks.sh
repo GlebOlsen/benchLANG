@@ -1,7 +1,7 @@
 #!/bin/bash
-# Compiles and runs every language, recording per-workload wall time, process
-# CPU time, peak RSS and native binary size.
-# Usage: ./run_benchmarks.sh [--runs N] [--only Lang1,Lang2]
+# Compiles and runs every language, recording compile time, per-workload wall
+# time, process CPU time, peak RSS and native binary size.
+# Usage: ./run_benchmarks.sh [--runs N] [--only Lang1,Lang2] [--compile-only]
 
 set -u
 
@@ -11,12 +11,14 @@ RESULTS_FILE="$SCRIPT_DIR/benchmark_results_$(date +%Y%m%d_%H%M%S).txt"
 
 RUNS=1
 ONLY=""
+COMPILE_ONLY=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --runs) [ $# -ge 2 ] || { echo "--runs needs a number"; exit 1; }; RUNS=$2; shift 2 ;;
         --only) [ $# -ge 2 ] || { echo "--only needs a comma-separated list"; exit 1; }; ONLY=$2; shift 2 ;;
-        -h|--help) echo "Usage: $0 [--runs N] [--only Lang1,Lang2,...]"; exit 0 ;;
+        --compile-only) COMPILE_ONLY=1; shift ;;
+        -h|--help) echo "Usage: $0 [--runs N] [--only Lang1,Lang2,...] [--compile-only]"; exit 0 ;;
         *) echo "Unknown arg: $1"; exit 1 ;;
     esac
 done
@@ -41,7 +43,7 @@ LANGS=(
     "D|D|ldc2|ldc2 -O3 -release -mcpu=native -flto=full -fp-contract=off -L-s -of=bench bench.d|./bench|bench|ldc2 --version | head -n1"
     "Rust|Rust|rustc|rustc -C opt-level=3 -C lto=fat -C target-cpu=native -C codegen-units=1 -C panic=abort -C strip=symbols bench.rs -o bench|./bench|bench|rustc --version"
     "Zig|Zig|zig|zig build-exe -OReleaseFast -mcpu=native -fstrip -lc bench.zig|./bench|bench|zig version"
-    "Go|GO|go|GOAMD64=v3 CGO_ENABLED=0 go build -ldflags='-s -w' -trimpath -o bench bench.go|./bench|bench|go version"
+    "Go|GO|go|GOCACHE=\$PWD/.gocache GOAMD64=v3 CGO_ENABLED=0 go build -ldflags='-s -w' -trimpath -o bench bench.go|./bench|bench|go version"
     "Nim|Nim|nim|nim c --hints:off --nimcache:nimcache -d:danger -d:lto --panics:on --passC:-march=native --passC:-ffp-contract=off --passL:-s bench.nim|./bench|bench|nim --version | head -n1"
     "OCaml|OCaml|ocamlopt|ocamlopt -O3 -unsafe -inline 200 -nodynlink monotonic.c bench.ml -o bench -ccopt -s|./bench|bench|ocamlopt --version"
     "Java|Java|java|javac bench.java|java bench||java --version | head -n1"
@@ -73,6 +75,7 @@ run_lang() {
     local dir="$LANGUAGES_DIR/$subdir"
 
     if [ -n "$ONLY" ] && [[ ",$ONLY," != *",$name,"* ]]; then return 0; fi
+    if [ "$COMPILE_ONLY" = 1 ] && [ -z "$compile" ]; then return 0; fi
     [ -d "$dir" ] || { echo -e "${D}skip $name (no dir)${N}"; return 0; }
     command -v "$cmdcheck" &>/dev/null || { echo -e "${D}skip $name ($cmdcheck not in PATH)${N}"; return 0; }
 
@@ -81,11 +84,13 @@ run_lang() {
     echo -e "${B}[$name]${N} $ver"
     cd "$dir" || return 1
 
+    local csecs=""
     if [ -n "$compile" ]; then
         local cstart cout
         cstart=$(date +%s.%N)
         if cout=$(eval "$compile" 2>&1); then
-            echo -e "  ${G}ok${N} compile ($(awk -v s="$cstart" -v e="$(date +%s.%N)" 'BEGIN{printf "%.1f", e-s}')s)"
+            csecs=$(awk -v s="$cstart" -v e="$(date +%s.%N)" 'BEGIN{printf "%.3f", e-s}')
+            echo -e "  ${G}ok${N} compile (${csecs}s)"
         else
             printf 'compile failed: %s\n%s\n' "$name" "$cout" | log_comment
             echo -e "  ${R}fail${N} compile (see $RESULTS_FILE)"
@@ -96,7 +101,8 @@ run_lang() {
 
     local size=""
     if [ -n "$binary" ] && [ -f "$binary" ]; then size=$(stat -c %s "$binary"); fi
-    printf 'LANG\t%s\t%s\t%s\n' "$name" "$ver" "$size" >> "$RESULTS_FILE"
+    printf 'LANG\t%s\t%s\t%s\t%s\n' "$name" "$ver" "$size" "$csecs" >> "$RESULTS_FILE"
+    if [ "$COMPILE_ONLY" = 1 ]; then cd "$SCRIPT_DIR"; return 0; fi
 
     local tf out i results
     tf=$(mktemp)
@@ -141,7 +147,7 @@ echo -e "${B}===============================================================${N}
 echo -e "${B}  benchLANG runner${N}"
 echo -e "${B}===============================================================${N}"
 echo "Started:  $(date)"
-echo "Runs:     $RUNS per language"
+if [ "$COMPILE_ONLY" = 1 ]; then echo "Mode:     compile only"; else echo "Runs:     $RUNS per language"; fi
 [ -n "$ONLY" ] && echo "Filter:   $ONLY"
 echo "Results:  $RESULTS_FILE"
 echo ""
@@ -153,8 +159,8 @@ echo ""
     echo "# benchLANG run $(date)"
     echo "# host: $(uname -srm)"
     echo "# cpu: $(grep -m1 'model name' /proc/cpuinfo | sed 's/.*: //')"
-    echo "# runs per language: $RUNS"
-    echo "# LANG   name  version  native_binary_bytes"
+    if [ "$COMPILE_ONLY" = 1 ]; then echo "# compile only, no workloads run"; else echo "# runs per language: $RUNS"; fi
+    echo "# LANG   name  version  native_binary_bytes  compile_s"
     echo "# RESULT name  run  workload  checksum  seconds"
     echo "# RUSAGE name  run  wall_s  user_s  sys_s  max_rss_kb"
 } > "$RESULTS_FILE"
@@ -166,7 +172,7 @@ done
 
 echo ""
 echo -e "${B}===============================================================${N}"
-echo -e "${B}  All benchmarks complete${N} ($(date))"
+if [ "$COMPILE_ONLY" = 1 ]; then echo -e "${B}  All compiles complete${N} ($(date))"; else echo -e "${B}  All benchmarks complete${N} ($(date))"; fi
 echo -e "${B}===============================================================${N}"
 
 if [ -x "$SCRIPT_DIR/analyze_results.sh" ]; then

@@ -36,6 +36,8 @@ clean_artifacts() {
 
     rm -rf "$LANGUAGES_DIR/C#/Bench/bin" "$LANGUAGES_DIR/C#/Bench/obj" "$LANGUAGES_DIR/C#/Bench/out" 2>/dev/null
     rm -rf "$LANGUAGES_DIR/Zig/.zig-cache" "$LANGUAGES_DIR/Zig/zig-cache" "$LANGUAGES_DIR/Zig/zig-out" 2>/dev/null
+    # Go's user-wide build cache would turn a rebuild into a bare link, hiding compile time.
+    rm -rf "$LANGUAGES_DIR/GO/.gocache" 2>/dev/null
     rm -rf "$LANGUAGES_DIR/Python/__pycache__" 2>/dev/null
     # Nim caches C objects keyed on source only; a compiler bump leaves stale LTO objects.
     rm -rf "$LANGUAGES_DIR/Nim/nimcache" 2>/dev/null
@@ -56,7 +58,7 @@ clean_artifacts() {
         done
     done
 
-    echo -e "${G}✓${N} Cleaned ${removed} artifacts + C#/Zig/Nim/Python caches + dotnet runfile cache"
+    echo -e "${G}✓${N} Cleaned ${removed} artifacts + C#/Zig/Go/Nim/Python caches + dotnet runfile cache"
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then

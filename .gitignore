@@ -69,6 +69,7 @@
 # Build caches (after !*/ so the directories are re-ignored)
 nimcache/
 .zig-cache/
+.gocache/
 zig-cache/
 __pycache__/
 out/
