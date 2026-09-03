@@ -107,12 +107,14 @@ Everything comes from nixpkgs-unstable, no overlays, no vendored binaries. The d
 
 ## **Results:**
 
-Results are from 3 September 2026 (one run per language):
+Results are from 3 September 2026 (one run per language). Peak RSS is whole-process peak resident memory from GNU `time`. Binary size is the stripped native executable, shown as - for languages that run on a separate runtime (JVM, .NET, Bun, Node, PHP, Python).
 <table>
 <tbody>
     <th>Language</th>
     <th>Total Runtime</th>
     <th>Factor of "slowness"</th>
+    <th>Peak RSS</th>
+    <th>Binary Size</th>
     <th>Primes</th>
     <th>Fibonacci</th>
     <th>String Operations</th>
@@ -122,6 +124,8 @@ Results are from 3 September 2026 (one run per language):
     <td>C<br/>(GCC 16.2.0)</td>
     <td>9.762 sec</td>
     <td>1.00x</td>
+    <td>33.3 MiB</td>
+    <td>26 KiB</td>
     <td>2.725 sec</td>
     <td>1.694 sec</td>
     <td>2.132 sec</td>
@@ -132,6 +136,8 @@ Results are from 3 September 2026 (one run per language):
     <td>C++<br/>(GCC 16.2.0)</td>
     <td>9.984 sec</td>
     <td>1.02x</td>
+    <td>35.4 MiB</td>
+    <td>30 KiB</td>
     <td>2.725 sec</td>
     <td>1.721 sec</td>
     <td>2.190 sec</td>
@@ -142,6 +148,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Nim<br/>(2.2.10)</td>
     <td>10.298 sec</td>
     <td>1.05x</td>
+    <td>51.5 MiB</td>
+    <td>46 KiB</td>
     <td>2.725 sec</td>
     <td>1.716 sec</td>
     <td>2.804 sec</td>
@@ -152,6 +160,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Ada<br/>(GNAT 16.2.0)</td>
     <td>10.306 sec</td>
     <td>1.06x</td>
+    <td>33.7 MiB</td>
+    <td>398 KiB</td>
     <td>2.726 sec</td>
     <td>1.666 sec</td>
     <td>2.603 sec</td>
@@ -162,6 +172,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Zig<br/>(0.16.0)</td>
     <td>10.737 sec</td>
     <td>1.10x</td>
+    <td>33.7 MiB</td>
+    <td>236 KiB</td>
     <td>2.722 sec</td>
     <td>3.181 sec</td>
     <td>1.504 sec</td>
@@ -172,6 +184,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Fortran<br/>(GCC 16.2.0)</td>
     <td>10.915 sec</td>
     <td>1.12x</td>
+    <td>34.4 MiB</td>
+    <td>26 KiB</td>
     <td>2.723 sec</td>
     <td>1.701 sec</td>
     <td>3.305 sec</td>
@@ -182,6 +196,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Rust<br/>(1.97.1)</td>
     <td>11.767 sec</td>
     <td>1.21x</td>
+    <td>34.0 MiB</td>
+    <td>349 KiB</td>
     <td>2.724 sec</td>
     <td>3.179 sec</td>
     <td>2.621 sec</td>
@@ -192,6 +208,8 @@ Results are from 3 September 2026 (one run per language):
     <td>C#<br/>(.NET 11.0.100-preview.7)</td>
     <td>11.914 sec</td>
     <td>1.22x</td>
+    <td>122.1 MiB</td>
+    <td>-</td>
     <td>2.726 sec</td>
     <td>3.793 sec</td>
     <td>2.235 sec</td>
@@ -202,6 +220,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Java<br/>(OpenJDK 25.0.4)</td>
     <td>13.536 sec</td>
     <td>1.39x</td>
+    <td>987.8 MiB</td>
+    <td>-</td>
     <td>2.730 sec</td>
     <td>4.109 sec</td>
     <td>4.075 sec</td>
@@ -212,6 +232,8 @@ Results are from 3 September 2026 (one run per language):
     <td>D<br/>(LDC 1.42.0)</td>
     <td>13.662 sec</td>
     <td>1.40x</td>
+    <td>97.6 MiB</td>
+    <td>914 KiB</td>
     <td>2.723 sec</td>
     <td>2.979 sec</td>
     <td>2.351 sec</td>
@@ -222,6 +244,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Go<br/>(1.26.7)</td>
     <td>15.366 sec</td>
     <td>1.57x</td>
+    <td>60.4 MiB</td>
+    <td>1564 KiB</td>
     <td>2.726 sec</td>
     <td>6.075 sec</td>
     <td>2.532 sec</td>
@@ -232,6 +256,8 @@ Results are from 3 September 2026 (one run per language):
     <td>OCaml<br/>(5.4.1)</td>
     <td>16.233 sec</td>
     <td>1.66x</td>
+    <td>89.7 MiB</td>
+    <td>1039 KiB</td>
     <td>3.200 sec</td>
     <td>4.897 sec</td>
     <td>5.000 sec</td>
@@ -242,6 +268,8 @@ Results are from 3 September 2026 (one run per language):
     <td>JS (Bun)<br/>(1.3.13)</td>
     <td>16.732 sec</td>
     <td>1.71x</td>
+    <td>336.1 MiB</td>
+    <td>-</td>
     <td>2.759 sec</td>
     <td>7.735 sec</td>
     <td>3.129 sec</td>
@@ -252,6 +280,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Dart<br/>(3.13.0 AOT)</td>
     <td>20.754 sec</td>
     <td>2.13x</td>
+    <td>74.6 MiB</td>
+    <td>5617 KiB</td>
     <td>2.963 sec</td>
     <td>8.135 sec</td>
     <td>6.523 sec</td>
@@ -262,6 +292,8 @@ Results are from 3 September 2026 (one run per language):
     <td>JS (Node)<br/>(v26.8.1)</td>
     <td>20.973 sec</td>
     <td>2.15x</td>
+    <td>266.9 MiB</td>
+    <td>-</td>
     <td>2.771 sec</td>
     <td>11.668 sec</td>
     <td>2.843 sec</td>
@@ -272,6 +304,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Pascal<br/>(FPC 3.2.2)</td>
     <td>24.247 sec</td>
     <td>2.48x</td>
+    <td>32.5 MiB</td>
+    <td>502 KiB</td>
     <td>3.249 sec</td>
     <td>5.933 sec</td>
     <td>11.254 sec</td>
@@ -282,6 +316,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Python (PyPy3)<br/>(7.3.20 / 3.11.13)</td>
     <td>29.371 sec</td>
     <td>3.01x</td>
+    <td>235.2 MiB</td>
+    <td>-</td>
     <td>3.346 sec</td>
     <td>12.676 sec</td>
     <td>6.141 sec</td>
@@ -292,6 +328,8 @@ Results are from 3 September 2026 (one run per language):
     <td>PHP<br/>(8.5.9)</td>
     <td>44.903 sec</td>
     <td>4.60x</td>
+    <td>153.9 MiB</td>
+    <td>-</td>
     <td>3.306 sec</td>
     <td>21.076 sec</td>
     <td>7.812 sec</td>
@@ -302,6 +340,8 @@ Results are from 3 September 2026 (one run per language):
     <td>Python 3<br/>(3.14.7)</td>
     <td>409.343 sec</td>
     <td>41.93x</td>
+    <td>110.5 MiB</td>
+    <td>-</td>
     <td>86.049 sec</td>
     <td>134.200 sec</td>
     <td>31.933 sec</td>
