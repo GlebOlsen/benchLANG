@@ -1,76 +1,98 @@
 #!/bin/bash
-# Parse a benchmark_results_*.txt file, average per-lang times across runs,
-# print a sorted overview table (fastest first) with slowness factor vs winner.
+# Parses a benchmark_results_*.txt file: averages per-workload times over runs,
+# checks that every language produced identical checksums, and prints a table
+# sorted by total workload time. Exits 1 on any checksum mismatch.
 
 set -e
 
 if [ $# -lt 1 ]; then
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     FILE=$(ls -t "$SCRIPT_DIR"/benchmark_results_*.txt 2>/dev/null | head -n1)
-    if [ -z "$FILE" ]; then echo "Usage: $0 <results.txt>"; exit 1; fi
+    [ -n "$FILE" ] || { echo "Usage: $0 <results.txt>"; exit 1; }
     echo "Analyzing latest results: $(basename "$FILE")"
 else
     FILE=$1
 fi
-
 [ -f "$FILE" ] || { echo "Error: $FILE not found"; exit 1; }
 
-awk '
-function fmt(x) { return sprintf("%.3f", x) }
-
-/^=== .* - Run [0-9]+ ===$/ {
-    line = $0
-    sub(/^=== /, "", line); sub(/ - Run [0-9]+ ===$/, "", line)
-    current = line; runs[current]++
-    next
+awk -F'\t' '
+BEGIN {
+    nb = split("primes fib strings mandelbrot binarytrees", bench, " ")
 }
-/^Found .* primes in [0-9.]+ seconds/        { if (current) { primes[current]+=$(NF-1); pc[current]++ } ; next }
-/^Fibonacci\( *[0-9]+\) = +.* in +[0-9.]+ seconds/ { if (current) { fibR[current]+=$(NF-1); frc[current]++ }; next }
-/^Strings: total= *[0-9]+ in +[0-9.]+ seconds/ { if (current) { strs[current]+=$(NF-1); sc[current]++ }; next }
-/^Mandelbrot: checksum= *-?[0-9]+ in +[0-9.]+ seconds/ { if (current) { mb_[current]+=$(NF-1); mbc[current]++ }; next }
-/^BinaryTrees: checksum= *-?[0-9]+ in +[0-9.]+ seconds/ { if (current) { bt_[current]+=$(NF-1); btc[current]++ }; next }
-/^Total execution time: [0-9.]+ seconds/       { if (current) { total[current]+=$(NF-1); tc[current]++ }; next }
-
+$1 == "LANG" {
+    lang = $2
+    if (!(lang in ver)) order[++n] = lang
+    ver[lang] = $3; bin[lang] = $4
+}
+$1 == "RESULT" {
+    lang = $2; b = $4
+    t[lang, b] += $6; c[lang, b]++
+    if (!((b, $5) in seen)) { seen[b, $5] = 1; distinct[b]++ }
+    csum[lang, b] = $5
+}
+$1 == "RUSAGE" {
+    lang = $2
+    runs[lang]++; wall[lang] += $4; cpu[lang] += $5 + $6
+    if ($7 + 0 > rss[lang]) rss[lang] = $7
+}
 END {
-    n = 0
-    for (lang in total) {
-        if (tc[lang] > 0) {
-            avg_total[lang]  = total[lang] / tc[lang]
-            avg_primes[lang] = (pc[lang]>0)  ? primes[lang]/pc[lang]  : 0
-            avg_fibR[lang]   = (frc[lang]>0) ? fibR[lang]/frc[lang]   : 0
-            avg_strs[lang]   = (sc[lang]>0)  ? strs[lang]/sc[lang]    : 0
-            avg_mb[lang]     = (mbc[lang]>0) ? mb_[lang]/mbc[lang]    : 0
-            avg_bt[lang]     = (btc[lang]>0) ? bt_[lang]/btc[lang]    : 0
-            langs[n++] = lang
+    bad = 0
+    for (j = 1; j <= nb; j++) {
+        b = bench[j]
+        if (distinct[b] > 1) {
+            bad = 1
+            printf "\nCHECKSUM MISMATCH in %s:\n", b
+            for (i = 1; i <= n; i++) if ((order[i], b) in csum) printf "  %-20s %s\n", order[i], csum[order[i], b]
         }
     }
-    if (n == 0) { print "No completed runs found."; exit 1 }
+    if (bad) print "\nRanking below is INVALID: not every language did the same work."
 
-    # Sort by avg_total ascending
-    for (i = 1; i < n; i++) {
-        key = langs[i]; kv = avg_total[key]
-        j = i - 1
-        while (j >= 0 && avg_total[langs[j]] > kv) { langs[j+1] = langs[j]; j-- }
-        langs[j+1] = key
+    m = 0
+    for (i = 1; i <= n; i++) {
+        lang = order[i]
+        if (!(runs[lang] > 0)) continue
+        total = 0; complete = 1
+        for (j = 1; j <= nb; j++) {
+            b = bench[j]
+            if (c[lang, b] > 0) { avg[lang, b] = t[lang, b] / c[lang, b]; total += avg[lang, b] }
+            else complete = 0
+        }
+        if (!complete) { incomplete[++ni] = lang; continue }
+        sum[lang] = total
+        langs[++m] = lang
     }
-    fastest = avg_total[langs[0]]
+    if (m == 0) { print "No completed runs found."; exit 1 }
 
+    for (i = 2; i <= m; i++) {
+        key = langs[i]; kv = sum[key]; j = i - 1
+        while (j >= 1 && sum[langs[j]] > kv) { langs[j + 1] = langs[j]; j-- }
+        langs[j + 1] = key
+    }
+    fastest = sum[langs[1]]
+
+    sep = "----------------------------------------------------------------------------------------------------------------------------"
     print ""
-    print "============================================================================================="
-    print "                              BENCHMARK OVERVIEW (averaged)"
-    print "============================================================================================="
-    printf "%-22s %5s %9s %9s %9s %9s %9s %9s %7s\n", \
-           "Language","Runs","Total","Primes","FibRec","Strings","Mandel","BinTrees","Factor"
-    print "---------------------------------------------------------------------------------------------"
-    for (i = 0; i < n; i++) {
+    print sep
+    printf "%-20s %4s %9s %9s %6s %8s %8s %8s %8s %8s %8s %8s %7s\n",
+        "Language", "Runs", "Sum", "Wall", "CPUx", "RSS MiB", "Bin KiB", "Primes", "Fib", "Strings", "Mandel", "Trees", "Factor"
+    print sep
+    for (i = 1; i <= m; i++) {
         lang = langs[i]
-        factor = (fastest > 0) ? avg_total[lang] / fastest : 1
-        printf "%-22s %5d %9s %9s %9s %9s %9s %9s %6.2fx\n", \
-               lang, tc[lang], fmt(avg_total[lang]), fmt(avg_primes[lang]), \
-               fmt(avg_fibR[lang]), fmt(avg_strs[lang]), \
-               fmt(avg_mb[lang]), fmt(avg_bt[lang]), factor
+        w = wall[lang] / runs[lang]
+        printf "%-20s %4d %9.3f %9.2f %6.2f %8.1f %8s %8.3f %8.3f %8.3f %8.3f %8.3f %6.2fx\n",
+            lang, runs[lang], sum[lang], w, (w > 0 ? cpu[lang] / runs[lang] / w : 0), rss[lang] / 1024,
+            (bin[lang] != "" ? sprintf("%.0f", bin[lang] / 1024) : "-"),
+            avg[lang, "primes"], avg[lang, "fib"], avg[lang, "strings"], avg[lang, "mandelbrot"], avg[lang, "binarytrees"],
+            (fastest > 0 ? sum[lang] / fastest : 1)
     }
-    print "============================================================================================="
+    print sep
+    print "Sum = per-workload in-process wall time added up (ranking metric). Wall/CPUx/RSS from GNU time over the whole"
+    print "process: CPUx = (user+sys)/wall, >1 means runtime used extra threads (GC, JIT). Bin KiB = stripped native binary."
+
+    for (i = 1; i <= ni; i++) printf "incomplete: %s (missing workloads, see raw file)\n", incomplete[i]
+
+    if (bad) { print "\nCHECKSUM MISMATCH, see above."; exit 1 }
+    print "All checksums identical across languages."
     print ""
 }
 ' "$FILE"

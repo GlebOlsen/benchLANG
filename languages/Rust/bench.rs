@@ -3,17 +3,20 @@ use std::time::Instant;
 const PRIMES_LIMIT: i32 = 20_000_000;
 const FIBONACCI_N: i32 = 45;
 const STRING_ITER: usize = 5_000_000;
-const MANDEL_W: usize = 4096;
-const MANDEL_H: usize = 4096;
+const MANDEL_SIZE: usize = 4096;
 const MANDEL_MAX_ITER: i32 = 256;
 const TREE_MIN_DEPTH: i32 = 4;
 const TREE_MAX_DEPTH: i32 = 18;
 const SENTENCE: &str =
     "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
 
+fn report(name: &str, checksum: i64, secs: f64) {
+    println!("{name} {checksum} {secs:.3}");
+}
+
 fn is_prime(n: i32) -> bool {
-    if n <= 1 { return false; }
-    if n <= 3 { return true; }
+    if n < 2 { return false; }
+    if n < 4 { return true; }
     if n % 2 == 0 || n % 3 == 0 { return false; }
     let mut i = 5;
     while i * i <= n {
@@ -22,47 +25,40 @@ fn is_prime(n: i32) -> bool {
     }
     true
 }
-fn bench_primes() {
-    let s = Instant::now();
-    let mut c = 0;
-    for i in 2..PRIMES_LIMIT { if is_prime(i) { c += 1; } }
-    println!("Found {} primes in {:.3} seconds\n", c, s.elapsed().as_secs_f64());
+
+fn bench_primes(limit: i32) -> i64 {
+    let mut count = 0;
+    for i in 2..limit {
+        if is_prime(i) { count += 1; }
+    }
+    count
 }
 
-fn fib(n: i32) -> i64 { if n <= 1 { n as i64 } else { fib(n - 1) + fib(n - 2) } }
-fn bench_fib_rec() {
-    let s = Instant::now();
-    let r = fib(FIBONACCI_N);
-    println!("Fibonacci({}) = {} in {:.3} seconds\n", FIBONACCI_N, r, s.elapsed().as_secs_f64());
+fn fib(n: i32) -> i64 {
+    if n < 2 { n as i64 } else { fib(n - 1) + fib(n - 2) }
 }
 
-fn bench_strings() {
-    let s = Instant::now();
-    let words: Vec<&str> = SENTENCE.split(' ').collect();
-    let wcount = words.len();
-    let mut total: u64 = 0;
-    for _ in 0..STRING_ITER {
-        for i in 0..wcount {
-            let mut count: u64 = 0;
-            for j in 0..wcount {
-                if words[i] == words[j] { count += 1; }
+fn bench_strings(sentence: &str, iters: usize) -> i64 {
+    let words: Vec<&str> = sentence.split(' ').collect();
+    let mut total = 0;
+    for _ in 0..iters {
+        for wi in &words {
+            for wj in &words {
+                if wi == wj { total += 1; }
             }
-            total += count;
         }
     }
-    println!("Strings: total={} in {:.3} seconds\n", total, s.elapsed().as_secs_f64());
+    total
 }
 
-fn bench_mandelbrot() {
-    let s = Instant::now();
-    let mut checksum: i64 = 0;
-    for py in 0..MANDEL_H {
-        let cy = (py as f64 / MANDEL_H as f64) * 3.0 - 1.5;
-        for px in 0..MANDEL_W {
-            let cx = (px as f64 / MANDEL_W as f64) * 3.0 - 2.0;
-            let mut zx = 0.0_f64;
-            let mut zy = 0.0_f64;
-            let mut iter: i32 = 0;
+fn bench_mandelbrot(size: usize) -> i64 {
+    let mut checksum = 0;
+    for py in 0..size {
+        let cy = py as f64 / size as f64 * 3.0 - 1.5;
+        for px in 0..size {
+            let cx = px as f64 / size as f64 * 3.0 - 2.0;
+            let (mut zx, mut zy) = (0.0f64, 0.0f64);
+            let mut iter = 0;
             while iter < MANDEL_MAX_ITER && zx * zx + zy * zy <= 4.0 {
                 let nx = zx * zx - zy * zy + cx;
                 zy = 2.0 * zx * zy + cy;
@@ -72,7 +68,7 @@ fn bench_mandelbrot() {
             checksum += iter as i64;
         }
     }
-    println!("Mandelbrot: checksum={} in {:.3} seconds\n", checksum, s.elapsed().as_secs_f64());
+    checksum
 }
 
 struct Node {
@@ -83,59 +79,48 @@ struct Node {
 
 fn make_tree(item: i64, depth: i32) -> Box<Node> {
     if depth == 0 {
-        Box::new(Node { left: None, right: None, item })
-    } else {
-        Box::new(Node {
-            left: Some(make_tree(2 * item - 1, depth - 1)),
-            right: Some(make_tree(2 * item, depth - 1)),
-            item,
-        })
+        return Box::new(Node { left: None, right: None, item });
     }
+    Box::new(Node {
+        left: Some(make_tree(2 * item - 1, depth - 1)),
+        right: Some(make_tree(2 * item, depth - 1)),
+        item,
+    })
 }
 
 fn check_tree(n: &Node) -> i64 {
-    match &n.left {
-        None => n.item,
-        Some(l) => n.item + check_tree(l) - check_tree(n.right.as_ref().unwrap()),
+    match (&n.left, &n.right) {
+        (Some(l), Some(r)) => n.item + check_tree(l) - check_tree(r),
+        _ => n.item,
     }
 }
 
-fn bench_binary_trees() {
-    let s = Instant::now();
-    let mut checksum: i64 = 0;
-
+fn bench_binary_trees(max_depth: i32) -> i64 {
+    let mut checksum = 0;
     {
-        let stretch = make_tree(0, TREE_MAX_DEPTH + 1);
+        let stretch = make_tree(0, max_depth + 1);
         checksum += check_tree(&stretch);
     }
-
-    let long_lived = make_tree(0, TREE_MAX_DEPTH);
-
+    let long_lived = make_tree(0, max_depth);
     let mut d = TREE_MIN_DEPTH;
-    while d <= TREE_MAX_DEPTH {
-        let iters = 1i32 << (TREE_MAX_DEPTH - d + TREE_MIN_DEPTH);
-        let mut sum: i64 = 0;
+    while d <= max_depth {
+        let iters = 1 << (max_depth - d + TREE_MIN_DEPTH);
         for i in 0..iters {
-            let t = make_tree((i + 1) as i64, d);
-            sum += check_tree(&t);
+            let t = make_tree(i as i64 + 1, d);
+            checksum += check_tree(&t);
         }
-        checksum += sum;
         d += 2;
     }
-
     checksum += check_tree(&long_lived);
-
-    println!("BinaryTrees: checksum={} in {:.3} seconds\n", checksum, s.elapsed().as_secs_f64());
+    checksum
 }
 
 fn main() {
-    println!("=== PROGRAMMING LANGUAGE BENCHMARK ===\n");
-    let s = Instant::now();
-    bench_primes();
-    bench_fib_rec();
-    bench_strings();
-    bench_mandelbrot();
-    bench_binary_trees();
-    println!("=== BENCHMARK COMPLETE ===");
-    println!("Total execution time: {:.3} seconds", s.elapsed().as_secs_f64());
+    let mut t;
+    let mut r;
+    t = Instant::now(); r = bench_primes(PRIMES_LIMIT);          report("primes", r, t.elapsed().as_secs_f64());
+    t = Instant::now(); r = fib(FIBONACCI_N);                     report("fib", r, t.elapsed().as_secs_f64());
+    t = Instant::now(); r = bench_strings(SENTENCE, STRING_ITER); report("strings", r, t.elapsed().as_secs_f64());
+    t = Instant::now(); r = bench_mandelbrot(MANDEL_SIZE);        report("mandelbrot", r, t.elapsed().as_secs_f64());
+    t = Instant::now(); r = bench_binary_trees(TREE_MAX_DEPTH);   report("binarytrees", r, t.elapsed().as_secs_f64());
 }

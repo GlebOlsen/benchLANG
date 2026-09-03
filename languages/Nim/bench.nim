@@ -1,73 +1,58 @@
-import times, strutils
+import std/[monotimes, strutils]
 
 const
-  PRIMES_LIMIT    = 20_000_000
-  FIBONACCI_N     = 45
-  STRING_ITER     = 5_000_000
-  MANDEL_W        = 4096
-  MANDEL_H        = 4096
-  MANDEL_MAX_ITER = 256
-  TREE_MIN_DEPTH  = 4
-  TREE_MAX_DEPTH  = 18
-  SENTENCE = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again"
+  PrimesLimit = 20_000_000'i32
+  FibonacciN = 45
+  StringIter = 5_000_000
+  MandelSize = 4096
+  MandelMaxIter = 256
+  TreeMinDepth = 4
+  TreeMaxDepth = 18
+  Sentence = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again"
 
-proc fmtSec(s: float): string = formatFloat(s, ffDecimal, 3)
+proc now(): float = getMonoTime().ticks.float / 1e9
+
+proc report(name: string, checksum: int64, secs: float) =
+  echo name, " ", checksum, " ", formatFloat(secs, ffDecimal, 3)
 
 proc isPrime(n: int32): bool =
-  if n <= 1: return false
-  if n <= 3: return true
+  if n < 2: return false
+  if n < 4: return true
   if n mod 2 == 0 or n mod 3 == 0: return false
-  var i: int32 = 5
-  while i*i <= n:
-    if n mod i == 0 or n mod (i+2) == 0: return false
+  var i = 5'i32
+  while i * i <= n:
+    if n mod i == 0 or n mod (i + 2) == 0: return false
     i += 6
   true
 
-proc benchPrimes() =
-  let s = cpuTime()
-  var c = 0
-  for i in int32(2) ..< int32(PRIMES_LIMIT):
-    if isPrime(i): inc c
-  echo "Found ", c, " primes in ", fmtSec(cpuTime()-s), " seconds\n"
+proc benchPrimes(limit: int32): int64 =
+  for i in 2'i32 ..< limit:
+    if isPrime(i): inc result
 
 proc fib(n: int): int64 =
-  if n <= 1: int64(n) else: fib(n-1) + fib(n-2)
+  if n < 2: int64(n) else: fib(n - 1) + fib(n - 2)
 
-proc benchFibRec() =
-  let s = cpuTime()
-  let r = fib(FIBONACCI_N)
-  echo "Fibonacci(", FIBONACCI_N, ") = ", r, " in ", fmtSec(cpuTime()-s), " seconds\n"
+proc benchStrings(sentence: string, iters: int): int64 =
+  let words = sentence.split(' ')
+  for it in 0 ..< iters:
+    for wi in words:
+      for wj in words:
+        if wi == wj: inc result
 
-proc benchStrings() =
-  let s = cpuTime()
-  let words = SENTENCE.split(' ')
-  let wcount = words.len
-  var total: uint64 = 0
-  for iter in 0 ..< STRING_ITER:
-    for i in 0 ..< wcount:
-      var count: uint64 = 0
-      for j in 0 ..< wcount:
-        if words[i] == words[j]: inc count
-      total += count
-  echo "Strings: total=", total, " in ", fmtSec(cpuTime()-s), " seconds\n"
-
-proc benchMandelbrot() =
-  let s = cpuTime()
-  var checksum: int64 = 0
-  for py in 0 ..< MANDEL_H:
-    let cy = (float64(py) / float64(MANDEL_H)) * 3.0 - 1.5
-    for px in 0 ..< MANDEL_W:
-      let cx = (float64(px) / float64(MANDEL_W)) * 3.0 - 2.0
+proc benchMandelbrot(size: int): int64 =
+  for py in 0 ..< size:
+    let cy = float64(py) / float64(size) * 3.0 - 1.5
+    for px in 0 ..< size:
+      let cx = float64(px) / float64(size) * 3.0 - 2.0
       var zx = 0.0
       var zy = 0.0
       var iter = 0
-      while iter < MANDEL_MAX_ITER and zx * zx + zy * zy <= 4.0:
+      while iter < MandelMaxIter and zx * zx + zy * zy <= 4.0:
         let nx = zx * zx - zy * zy + cx
         zy = 2.0 * zx * zy + cy
         zx = nx
         inc iter
-      checksum += int64(iter)
-  echo "Mandelbrot: checksum=", checksum, " in ", fmtSec(cpuTime()-s), " seconds\n"
+      result += int64(iter)
 
 type Node = ref object
   left, right: Node
@@ -75,45 +60,33 @@ type Node = ref object
 
 proc makeTree(item: int64, depth: int): Node =
   if depth == 0:
-    return Node(left: nil, right: nil, item: item)
-  Node(left: makeTree(2*item - 1, depth - 1),
-       right: makeTree(2*item, depth - 1),
+    return Node(item: item)
+  Node(left: makeTree(2 * item - 1, depth - 1),
+       right: makeTree(2 * item, depth - 1),
        item: item)
 
-proc itemCheck(n: Node): int64 =
+proc checkTree(n: Node): int64 =
   if n.left == nil: return n.item
-  n.item + itemCheck(n.left) - itemCheck(n.right)
+  n.item + checkTree(n.left) - checkTree(n.right)
 
-proc benchBinaryTrees() =
-  let s = cpuTime()
-  var checksum: int64 = 0
-
+proc benchBinaryTrees(maxDepth: int): int64 =
   block:
-    let stretch = makeTree(0, TREE_MAX_DEPTH + 1)
-    checksum += itemCheck(stretch)
-
-  let longLived = makeTree(0, TREE_MAX_DEPTH)
-
-  var d = TREE_MIN_DEPTH
-  while d <= TREE_MAX_DEPTH:
-    let iters = 1 shl (TREE_MAX_DEPTH - d + TREE_MIN_DEPTH)
-    var sum: int64 = 0
+    let stretch = makeTree(0, maxDepth + 1)
+    result += checkTree(stretch)
+  let longLived = makeTree(0, maxDepth)
+  var d = TreeMinDepth
+  while d <= maxDepth:
+    let iters = 1 shl (maxDepth - d + TreeMinDepth)
     for i in 0 ..< iters:
-      sum += itemCheck(makeTree(int64(i + 1), d))
-    checksum += sum
+      result += checkTree(makeTree(int64(i + 1), d))
     d += 2
-
-  checksum += itemCheck(longLived)
-
-  echo "BinaryTrees: checksum=", checksum, " in ", fmtSec(cpuTime()-s), " seconds\n"
+  result += checkTree(longLived)
 
 when isMainModule:
-  echo "=== PROGRAMMING LANGUAGE BENCHMARK ===\n"
-  let total = cpuTime()
-  benchPrimes()
-  benchFibRec()
-  benchStrings()
-  benchMandelbrot()
-  benchBinaryTrees()
-  echo "=== BENCHMARK COMPLETE ==="
-  echo "Total execution time: ", fmtSec(cpuTime()-total), " seconds"
+  var t: float
+  var r: int64
+  t = now(); r = benchPrimes(PrimesLimit);          report("primes", r, now() - t)
+  t = now(); r = fib(FibonacciN);                    report("fib", r, now() - t)
+  t = now(); r = benchStrings(Sentence, StringIter); report("strings", r, now() - t)
+  t = now(); r = benchMandelbrot(MandelSize);        report("mandelbrot", r, now() - t)
+  t = now(); r = benchBinaryTrees(TreeMaxDepth);     report("binarytrees", r, now() - t)

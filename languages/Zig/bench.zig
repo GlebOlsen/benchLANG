@@ -1,27 +1,28 @@
 const std = @import("std");
-const c = @cImport({
-    @cInclude("time.h");
-});
 
 const PRIMES_LIMIT: u32 = 20_000_000;
 const FIBONACCI_N: u32 = 45;
 const STRING_ITER: u32 = 5_000_000;
-const MANDEL_W: usize = 4096;
-const MANDEL_H: usize = 4096;
+const MANDEL_SIZE: usize = 4096;
 const MANDEL_MAX_ITER: i32 = 256;
 const TREE_MIN_DEPTH: i32 = 4;
 const TREE_MAX_DEPTH: i32 = 18;
+const MAX_WORDS = 32;
 const SENTENCE = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
 
-fn nowSec() f64 {
-    var ts: c.timespec = undefined;
-    _ = c.clock_gettime(c.CLOCK_MONOTONIC, &ts);
-    return @as(f64, @floatFromInt(ts.tv_sec)) + @as(f64, @floatFromInt(ts.tv_nsec)) / 1e9;
+fn now(io: std.Io) f64 {
+    const ts = std.Io.Clock.now(.awake, io);
+    return @as(f64, @floatFromInt(ts.nanoseconds)) / 1e9;
+}
+
+fn report(out: *std.Io.Writer, name: []const u8, checksum: i64, secs: f64) !void {
+    try out.print("{s} {d} {d:.3}\n", .{ name, checksum, secs });
+    try out.flush();
 }
 
 fn isPrime(n: u32) bool {
-    if (n <= 1) return false;
-    if (n <= 3) return true;
+    if (n < 2) return false;
+    if (n < 4) return true;
     if (n % 2 == 0 or n % 3 == 0) return false;
     var i: u32 = 5;
     while (i * i <= n) : (i += 6) {
@@ -30,61 +31,47 @@ fn isPrime(n: u32) bool {
     return true;
 }
 
-fn benchPrimes() void {
-    const out = std.debug.print;
-    const start = nowSec();
-    var c_count: u32 = 0;
+fn benchPrimes(limit: u32) i64 {
+    var count: i64 = 0;
     var i: u32 = 2;
-    while (i < PRIMES_LIMIT) : (i += 1) if (isPrime(i)) { c_count += 1; };
-    out("Found {} primes in {d:.3} seconds\n\n", .{ c_count, nowSec() - start });
+    while (i < limit) : (i += 1) {
+        if (isPrime(i)) count += 1;
+    }
+    return count;
 }
 
-fn fib(n: u32) u64 { return if (n <= 1) @as(u64, n) else fib(n - 1) + fib(n - 2); }
-fn benchFibRec() void {
-    const out = std.debug.print;
-    const start = nowSec();
-    const r = fib(FIBONACCI_N);
-    out("Fibonacci({}) = {} in {d:.3} seconds\n\n", .{ FIBONACCI_N, r, nowSec() - start });
+fn fib(n: u32) i64 {
+    return if (n < 2) @as(i64, n) else fib(n - 1) + fib(n - 2);
 }
 
-fn benchStrings() void {
-    const out = std.debug.print;
-    const start = nowSec();
-
-    var words: [32][]const u8 = undefined;
+fn benchStrings(sentence: []const u8, iters: u32) i64 {
+    var words: [MAX_WORDS][]const u8 = undefined;
     var wcount: usize = 0;
-    var iter = std.mem.tokenizeScalar(u8, SENTENCE, ' ');
-    while (iter.next()) |w| {
+    var tok = std.mem.tokenizeScalar(u8, sentence, ' ');
+    while (tok.next()) |w| {
+        if (wcount == MAX_WORDS) break;
         words[wcount] = w;
         wcount += 1;
     }
-
-    var total: u64 = 0;
-    var k: u32 = 0;
-    while (k < STRING_ITER) : (k += 1) {
-        var i: usize = 0;
-        while (i < wcount) : (i += 1) {
-            var count: u64 = 0;
-            var j: usize = 0;
-            while (j < wcount) : (j += 1) {
-                if (std.mem.eql(u8, words[i], words[j])) count += 1;
+    var total: i64 = 0;
+    var it: u32 = 0;
+    while (it < iters) : (it += 1) {
+        for (words[0..wcount]) |wi| {
+            for (words[0..wcount]) |wj| {
+                if (std.mem.eql(u8, wi, wj)) total += 1;
             }
-            total += count;
         }
     }
-    out("Strings: total={} in {d:.3} seconds\n\n", .{ total, nowSec() - start });
+    return total;
 }
 
-fn benchMandelbrot() void {
-    const out = std.debug.print;
-    const start = nowSec();
+fn benchMandelbrot(size: usize) i64 {
     var checksum: i64 = 0;
-    var py: usize = 0;
-    while (py < MANDEL_H) : (py += 1) {
-        const cy: f64 = (@as(f64, @floatFromInt(py)) / @as(f64, @floatFromInt(MANDEL_H))) * 3.0 - 1.5;
-        var px: usize = 0;
-        while (px < MANDEL_W) : (px += 1) {
-            const cx: f64 = (@as(f64, @floatFromInt(px)) / @as(f64, @floatFromInt(MANDEL_W))) * 3.0 - 2.0;
+    const fsize: f64 = @floatFromInt(size);
+    for (0..size) |py| {
+        const cy = @as(f64, @floatFromInt(py)) / fsize * 3.0 - 1.5;
+        for (0..size) |px| {
+            const cx = @as(f64, @floatFromInt(px)) / fsize * 3.0 - 2.0;
             var zx: f64 = 0.0;
             var zy: f64 = 0.0;
             var iter: i32 = 0;
@@ -93,20 +80,20 @@ fn benchMandelbrot() void {
                 zy = 2.0 * zx * zy + cy;
                 zx = nx;
             }
-            checksum += @as(i64, iter);
+            checksum += iter;
         }
     }
-    out("Mandelbrot: checksum={} in {d:.3} seconds\n\n", .{ checksum, nowSec() - start });
+    return checksum;
 }
 
-const TreeNode = struct {
-    left: ?*TreeNode,
-    right: ?*TreeNode,
+const Node = struct {
+    left: ?*Node,
+    right: ?*Node,
     item: i64,
 };
 
-fn makeTree(allocator: std.mem.Allocator, item: i64, depth: i32) !*TreeNode {
-    const n = try allocator.create(TreeNode);
+fn makeTree(allocator: std.mem.Allocator, item: i64, depth: i32) !*Node {
+    const n = try allocator.create(Node);
     if (depth == 0) {
         n.* = .{ .left = null, .right = null, .item = item };
         return n;
@@ -119,12 +106,12 @@ fn makeTree(allocator: std.mem.Allocator, item: i64, depth: i32) !*TreeNode {
     return n;
 }
 
-fn checkTree(n: *TreeNode) i64 {
-    if (n.left == null) return n.item;
-    return n.item + checkTree(n.left.?) - checkTree(n.right.?);
+fn checkTree(n: *const Node) i64 {
+    const left = n.left orelse return n.item;
+    return n.item + checkTree(left) - checkTree(n.right.?);
 }
 
-fn freeTree(allocator: std.mem.Allocator, n: *TreeNode) void {
+fn freeTree(allocator: std.mem.Allocator, n: *Node) void {
     if (n.left) |l| {
         freeTree(allocator, l);
         freeTree(allocator, n.right.?);
@@ -132,49 +119,50 @@ fn freeTree(allocator: std.mem.Allocator, n: *TreeNode) void {
     allocator.destroy(n);
 }
 
-fn benchBinaryTrees() !void {
-    const out = std.debug.print;
-    const start = nowSec();
-    const allocator = std.heap.c_allocator;
+fn benchBinaryTrees(allocator: std.mem.Allocator, max_depth: i32) !i64 {
     var checksum: i64 = 0;
-
-    {
-        const stretch = try makeTree(allocator, 0, TREE_MAX_DEPTH + 1);
-        checksum += checkTree(stretch);
-        freeTree(allocator, stretch);
-    }
-
-    const long_lived = try makeTree(allocator, 0, TREE_MAX_DEPTH);
-
+    const stretch = try makeTree(allocator, 0, max_depth + 1);
+    checksum += checkTree(stretch);
+    freeTree(allocator, stretch);
+    const long_lived = try makeTree(allocator, 0, max_depth);
     var d: i32 = TREE_MIN_DEPTH;
-    while (d <= TREE_MAX_DEPTH) : (d += 2) {
-        const iters: i32 = @as(i32, 1) << @intCast(TREE_MAX_DEPTH - d + TREE_MIN_DEPTH);
-        var sum: i64 = 0;
+    while (d <= max_depth) : (d += 2) {
+        const iters = @as(i32, 1) << @intCast(max_depth - d + TREE_MIN_DEPTH);
         var i: i32 = 0;
         while (i < iters) : (i += 1) {
-            const t = try makeTree(allocator, @as(i64, i + 1), d);
-            sum += checkTree(t);
+            const t = try makeTree(allocator, i + 1, d);
+            checksum += checkTree(t);
             freeTree(allocator, t);
         }
-        checksum += sum;
     }
-
     checksum += checkTree(long_lived);
     freeTree(allocator, long_lived);
-
-    out("BinaryTrees: checksum={} in {d:.3} seconds\n\n", .{ checksum, nowSec() - start });
+    return checksum;
 }
 
-pub fn main() !void {
-    const out = std.debug.print;
-    out("=== PROGRAMMING LANGUAGE BENCHMARK ===\n\n", .{});
+pub fn main(init: std.process.Init) !void {
+    const io = init.io;
+    const allocator = std.heap.c_allocator;
 
-    const start = nowSec();
-    benchPrimes();
-    benchFibRec();
-    benchStrings();
-    benchMandelbrot();
-    try benchBinaryTrees();
-    out("=== BENCHMARK COMPLETE ===\n", .{});
-    out("Total execution time: {d:.3} seconds\n", .{nowSec() - start});
+    var buf: [256]u8 = undefined;
+    var w = std.Io.File.stdout().writer(io, &buf);
+    const out = &w.interface;
+
+    var t: f64 = undefined;
+    var r: i64 = undefined;
+    t = now(io);
+    r = benchPrimes(PRIMES_LIMIT);
+    try report(out, "primes", r, now(io) - t);
+    t = now(io);
+    r = fib(FIBONACCI_N);
+    try report(out, "fib", r, now(io) - t);
+    t = now(io);
+    r = benchStrings(SENTENCE, STRING_ITER);
+    try report(out, "strings", r, now(io) - t);
+    t = now(io);
+    r = benchMandelbrot(MANDEL_SIZE);
+    try report(out, "mandelbrot", r, now(io) - t);
+    t = now(io);
+    r = try benchBinaryTrees(allocator, TREE_MAX_DEPTH);
+    try report(out, "binarytrees", r, now(io) - t);
 }

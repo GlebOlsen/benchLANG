@@ -1,65 +1,63 @@
 import time
-import sys
 
 PRIMES_LIMIT = 20_000_000
 FIBONACCI_N = 45
 STRING_ITER = 5_000_000
-MANDEL_W = 4096
-MANDEL_H = 4096
+MANDEL_SIZE = 4096
 MANDEL_MAX_ITER = 256
 TREE_MIN_DEPTH = 4
 TREE_MAX_DEPTH = 18
 SENTENCE = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again"
 
 
+def report(name, checksum, secs):
+    print(f"{name} {checksum} {secs:.3f}")
+
+
 def is_prime(n):
-    if n <= 1: return False
-    if n <= 3: return True
-    if n % 2 == 0 or n % 3 == 0: return False
+    if n < 2:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
     i = 5
     while i * i <= n:
-        if n % i == 0 or n % (i + 2) == 0: return False
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
         i += 6
     return True
 
-def bench_primes():
-    s = time.perf_counter()
+
+def bench_primes(limit):
     count = 0
-    for i in range(2, PRIMES_LIMIT):
-        if is_prime(i): count += 1
-    print(f"Found {count} primes in {time.perf_counter()-s:.3f} seconds\n")
+    for i in range(2, limit):
+        if is_prime(i):
+            count += 1
+    return count
 
-sys.setrecursionlimit(200)
+
 def fib(n):
-    if n <= 1: return n
-    return fib(n-1) + fib(n-2)
+    return n if n < 2 else fib(n - 1) + fib(n - 2)
 
-def bench_fib_recursive():
-    s = time.perf_counter()
-    r = fib(FIBONACCI_N)
-    print(f"Fibonacci({FIBONACCI_N}) = {r} in {time.perf_counter()-s:.3f} seconds\n")
 
-def bench_strings():
-    s = time.perf_counter()
-    words = SENTENCE.split(' ')
-    wcount = len(words)
+def bench_strings(sentence, iters):
+    words = sentence.split(' ')
     total = 0
-    for _ in range(STRING_ITER):
-        for i in range(wcount):
-            count = 0
-            wi = words[i]
-            for j in range(wcount):
-                if wi == words[j]: count += 1
-            total += count
-    print(f"Strings: total={total} in {time.perf_counter()-s:.3f} seconds\n")
+    for _ in range(iters):
+        for wi in words:
+            for wj in words:
+                if wi == wj:
+                    total += 1
+    return total
 
-def bench_mandelbrot():
-    s = time.perf_counter()
+
+def bench_mandelbrot(size):
     checksum = 0
-    for py in range(MANDEL_H):
-        cy = (py / MANDEL_H) * 3.0 - 1.5
-        for px in range(MANDEL_W):
-            cx = (px / MANDEL_W) * 3.0 - 2.0
+    for py in range(size):
+        cy = py / size * 3.0 - 1.5
+        for px in range(size):
+            cx = px / size * 3.0 - 2.0
             zx = 0.0
             zy = 0.0
             it = 0
@@ -69,59 +67,52 @@ def bench_mandelbrot():
                 zx = nx
                 it += 1
             checksum += it
-    print(f"Mandelbrot: checksum={checksum} in {time.perf_counter()-s:.3f} seconds\n")
+    return checksum
+
 
 class Node:
     __slots__ = ('left', 'right', 'item')
+
     def __init__(self, left, right, item):
         self.left = left
         self.right = right
         self.item = item
+
 
 def make_tree(item, depth):
     if depth == 0:
         return Node(None, None, item)
     return Node(make_tree(2 * item - 1, depth - 1), make_tree(2 * item, depth - 1), item)
 
+
 def check_tree(n):
     if n.left is None:
         return n.item
     return n.item + check_tree(n.left) - check_tree(n.right)
 
-def bench_binary_trees():
-    s = time.perf_counter()
+
+def bench_binary_trees(max_depth):
     checksum = 0
-
-    stretch = make_tree(0, TREE_MAX_DEPTH + 1)
+    stretch = make_tree(0, max_depth + 1)
     checksum += check_tree(stretch)
-    stretch = None
-
-    long_lived = make_tree(0, TREE_MAX_DEPTH)
-
-    d = TREE_MIN_DEPTH
-    while d <= TREE_MAX_DEPTH:
-        iters = 1 << (TREE_MAX_DEPTH - d + TREE_MIN_DEPTH)
-        sub = 0
+    del stretch
+    long_lived = make_tree(0, max_depth)
+    for d in range(TREE_MIN_DEPTH, max_depth + 1, 2):
+        iters = 1 << (max_depth - d + TREE_MIN_DEPTH)
         for i in range(iters):
-            t = make_tree(i + 1, d)
-            sub += check_tree(t)
-        checksum += sub
-        d += 2
-
+            checksum += check_tree(make_tree(i + 1, d))
     checksum += check_tree(long_lived)
+    return checksum
 
-    print(f"BinaryTrees: checksum={checksum} in {time.perf_counter()-s:.3f} seconds\n")
 
 def main():
-    print("=== PROGRAMMING LANGUAGE BENCHMARK ===\n")
-    s = time.perf_counter()
-    bench_primes()
-    bench_fib_recursive()
-    bench_strings()
-    bench_mandelbrot()
-    bench_binary_trees()
-    print("=== BENCHMARK COMPLETE ===")
-    print(f"Total execution time: {time.perf_counter()-s:.3f} seconds")
+    now = time.perf_counter
+    t = now(); r = bench_primes(PRIMES_LIMIT);          report("primes", r, now() - t)
+    t = now(); r = fib(FIBONACCI_N);                     report("fib", r, now() - t)
+    t = now(); r = bench_strings(SENTENCE, STRING_ITER); report("strings", r, now() - t)
+    t = now(); r = bench_mandelbrot(MANDEL_SIZE);        report("mandelbrot", r, now() - t)
+    t = now(); r = bench_binary_trees(TREE_MAX_DEPTH);   report("binarytrees", r, now() - t)
+
 
 if __name__ == "__main__":
     main()

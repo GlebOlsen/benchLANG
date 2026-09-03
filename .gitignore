@@ -13,6 +13,10 @@
 !*.c
 !*.h
 
+# C++
+!*.cpp
+!*.hpp
+
 # C#
 *.cs
 !Program.cs
@@ -57,3 +61,14 @@
 !*.sh
 
 !*.nix
+!flake.lock
+!*.cff
+!*.md
+!LICENSE
+
+# Build caches (after !*/ so the directories are re-ignored)
+nimcache/
+.zig-cache/
+zig-cache/
+__pycache__/
+out/
