@@ -1,374 +1,126 @@
 # benchLANG: Programming Language Benchmark 2026
 
-benchLANG is a reproducible cross-language runtime benchmark: 19 languages, five identical workloads, pinned Nix toolchains. Records runtime, peak memory and binary size.
+Reproducible runtime benchmark: 20 languages (22 runtimes), 6 identical workloads, toolchains pinned with Nix. Measures runtime, memory usage, binary size and compile time.
 
-**Purpose:**
+## Results
 
-Find which programming language is fastest in runtime across identical tasks.
+Runtime in seconds, average of 2 runs per language, 20 October 2026, CPU locked at 3.5 GHz.
+Binary and Compile show `-` for languages without a native build (bytecode, JIT or interpreter).
 
-## **Latest results:**
+| Language | Total | vs fastest | Memory (MiB) | Binary (KiB) | Compile (s) | Primes | Fib | Strings | Mandelbrot | Trees | k-nucleotide |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| C | 3.90 | 1.00x | 24 | 34 | 0.68 | **0.75** | 0.65 | **0.54** | **0.55** | 0.84 | **0.57** |
+| C++ | 4.37 | 1.12x | 20 | 42 | 2.59 | **0.75** | 0.65 | 0.55 | **0.55** | 0.94 | 0.94 |
+| Fortran | 4.53 | 1.16x | 19 | 42 | 0.81 | **0.75** | 0.66 | 0.79 | **0.55** | 0.85 | 0.94 |
+| Nim | 4.53 | 1.16x | 76 | 78 | 2.72 | **0.75** | 0.69 | 0.56 | **0.55** | 0.37 | 1.62 |
+| Rust | 4.59 | 1.18x | 21 | 357 | 4.36 | **0.75** | 1.01 | 0.59 | **0.55** | 0.91 | 0.77 |
+| D | 4.88 | 1.25x | 50 | 935 | 3.26 | **0.75** | 1.14 | 0.59 | **0.55** | 1.16 | 0.69 |
+| C# | 5.29 | 1.36x | 108 | - | - | **0.75** | 1.57 | 0.58 | 0.56 | 0.41 | 1.44 |
+| Java | 5.58 | 1.43x | 381 | - | - | **0.75** | 1.58 | 0.85 | 0.57 | **0.14** | 1.68 |
+| Zig | 5.65 | 1.45x | 23 | 348 | 4.88 | **0.75** | 1.87 | 1.10 | **0.55** | 0.72 | 0.65 |
+| Go | 6.02 | 1.55x | 37 | 1512 | 2.36 | **0.75** | 2.32 | 0.83 | 0.56 | 0.60 | 0.96 |
+| Ada | 6.18 | 1.59x | 26 | 578 | 3.83 | **0.75** | **0.62** | 0.86 | **0.55** | 0.91 | 2.50 |
+| OCaml | 7.98 | 2.05x | 41 | 1356 | 0.29 | 0.88 | 1.87 | 1.36 | 0.57 | 0.28 | 3.01 |
+| Dart | 8.55 | 2.20x | 81 | 5857 | 1.05 | 0.81 | 3.20 | 1.65 | 0.57 | 0.22 | 2.10 |
+| JS (Bun) | 8.89 | 2.28x | 271 | - | - | 0.76 | 2.80 | 1.47 | 0.57 | 0.30 | 3.00 |
+| Swift | 9.38 | 2.41x | 37 | 39 | 1.39 | **0.75** | 2.07 | 1.80 | 0.56 | 1.59 | 2.61 |
+| JS (Node) | 11.86 | 3.04x | 214 | - | - | 0.76 | 4.44 | 1.57 | 0.56 | 0.57 | 3.95 |
+| Python (PyPy) | 12.53 | 3.22x | 157 | - | - | 0.93 | 5.16 | 1.49 | 0.60 | 1.67 | 2.68 |
+| PHP | 18.05 | 4.63x | 131 | - | - | 0.93 | 8.80 | 2.11 | 1.10 | 3.24 | 1.88 |
+| Haskell | 18.68 | 4.80x | 58 | 1324 | 1.09 | 0.76 | 2.02 | 1.74 | 0.77 | 0.17 | 13.22 |
+| Pascal | 19.14 | 4.91x | 23 | 1196 | 0.90 | 0.90 | 2.92 | 4.81 | 1.55 | 0.71 | 8.25 |
+| Ruby | 30.26 | 7.77x | 65 | - | - | 1.60 | 5.04 | 4.89 | 9.31 | 1.36 | 8.06 |
+| Python (CPython) | 132.55 | 34.03x | 63 | - | - | 20.43 | 53.20 | 7.51 | 33.73 | 9.89 | 7.79 |
 
-Results from September 2026, one run per language on a Ryzen 9 5900X locked at 3.5 GHz.
+## Methodology
 
-## **Methodology:**
+* Every language runs the same workloads, written the idiomatic way, one file each.
+* Inputs are compile-time constants. If a compiler folds a workload away, that is a result.
+* Each workload prints `name checksum seconds`. Different checksums invalidate the ranking.
+* Ranking is the sum of all workload times.
+* Compiled languages use their fastest release flags. Array bounds checks stay on everywhere, because Rust, Java and C# cannot turn them off; C has none. Swift and Zig cannot keep bounds checks without overflow checks, so they keep both.
+* Managed runtimes use default settings, JIT warm-up included. PHP (OPcache) and Ruby (YJIT) switch their JIT on, as in production.
+* No FMA anywhere, so floating-point results match bit for bit.
+* Memory usage is the peak of the whole process. Binary size is the stripped executable, without shared runtime libraries (libstdc++, libgfortran, libswiftCore). Compile time is a clean native build. Zig can add about 2 s on a cold cache.
+* Machine: Ryzen 9 5900X locked at 3.5 GHz, 48 GB DDR4-3600 CL16, Arch Linux with i3 and background services stopped.
+* Compiles and benchmarks run pinned to the second CCD (CPUs 6-11, 18-23). The runner and GNU `time` stay on the first core (CPUs 0 and 12).
 
-Every language runs the same five workloads, written the idiomatic way, one file each. Ranked by summed in-program wall time. GNU `time` adds whole-process CPU time, peak RSS and the runner records stripped binary size.
+## Workloads
 
-* Inputs are compile-time constants. A workload the compiler folds away shows up as near-zero time. That is a result, not a bug.
-* Each workload prints `name checksum seconds` from a monotonic clock. The analyzer marks the ranking invalid if checksums differ.
-* FMA contraction is off everywhere, so Mandelbrot is bit-identical.
-* Compiled languages use their fastest release mode, runtime checks off where the compiler allows. Managed runtimes keep their mandated checks, default settings, JIT warm-up inside the timed region.
-* `CPUx` = (user+sys)/wall, above 1.0 means extra runtime threads (GC, JIT).
-* Compile time is the wall time of the build command on a clean tree. The runner wipes every project-local artifact and cache first (binaries, nimcache, .zig-cache, .gocache, dotnet obj/out), so Go, Nim and Zig compile the standard library parts they use. Toolchain-level caches stay warm (Zig's global cache, NuGet). Two known outliers: Zig's first-ever build on a machine takes about 2 s longer while it fills its global cache, and the C# build takes about 2 s longer whenever NuGet refreshes its package index and vulnerability data from the network after its cache expires. Java's figure is javac only. Interpreters and JITs have nothing to compile.
+* **Primes:** trial division of every number below 8,000,000. Integer division.
+* **Fibonacci:** naive recursive fib(43), 1.4 billion calls. Function calls.
+* **Strings:** 1.2M rounds. Each round reverses one of 19 words, then compares every word against the originals. String building and equality.
+* **Mandelbrot:** 2048x2048 pixels, up to 256 iterations each. Floating point.
+* **Trees:** build, check and free millions of binary trees (depth 4 to 17). Allocation and GC. Native code frees memory inside the timer, GC runtimes collect whenever they like.
+* **k-nucleotide:** count every 1, 2, 3, 4, 6, 12 and 18-letter substring of a generated 6M-letter DNA string in the standard hash map. Sort the 1 and 2-letter counts, look up one fixed sequence for the longer ones. Hash maps and substrings.
 
-**Workloads:**
-* Primes: trial-division primality for every integer below 20,000,000
-* Fibonacci: recursive Fibonacci(45)
-* Strings: 5M iterations of 19x19 word equality on a sentence split at spaces
-* Mandelbrot: 4096x4096 grid, 256 iterations/pixel. FP throughput + branch prediction
-* Binary trees: CLBG-style alloc/traverse (depths 4..18). Allocator + GC + pointer chase, native code frees inside the timer, GC runtimes collect when they like
+C and Fortran have no standard hash map, so they share one simple open-addressing table. Haskell ships only a tree map (`Data.Map`).
 
-**PC specs:**
-* Arch i3-wm (killed most background services apart from kernel and WM)
-* Ryzen 9 5900X, 48 GB RAM, DDR4-3600 CL16
-
-**Computer power mode:**
-
-`sudo cpupower frequency-set -g performance`
-```
-sudo cpupower frequency-set --max 3500MHz
-sudo cpupower frequency-set --min 3500MHz
-```
-**(This makes the CPU run at 3.5 GHz.)**
-<br/>
-
-## **Reproducible toolchain (Nix):**
+## Run it
 
 ```bash
-nix develop                   # enter shell with all toolchains pinned
-./run_benchmarks.sh           # full sweep, 1 run/lang
-./run_benchmarks.sh --runs 3  # 3 runs/lang, averaged in summary
+sudo cpupower frequency-set -g performance
+sudo cpupower frequency-set --max 3500MHz
+sudo cpupower frequency-set --min 3500MHz
+
+nix develop                          # all toolchains, pinned
+./run_benchmarks.sh                  # every language, 1 run each
+./run_benchmarks.sh --runs 3         # 3 runs each, averaged
 ./run_benchmarks.sh --only C,Rust,Zig
-./run_benchmarks.sh --compile-only  # build every compiled language, record compile times only
-./analyze_results.sh          # re-print summary from latest results file
-./clean.sh                    # remove build artifacts and the dotnet runfile cache
+./run_benchmarks.sh --compile-only   # compile times only
+./run_benchmarks.sh --cpus 6-11      # pick the benchmark CPUs yourself
+./analyze_results.sh                 # summary of the latest results file
+./analyze_results.sh --markdown      # the Results table above
+./clean.sh                           # remove build artifacts and caches
 ```
 
-Results land in `benchmark_results_<timestamp>.txt` (tab-separated `LANG`, `RESULT`, `RUSAGE` lines). Each program also runs standalone.
+Results land in `benchmark_results_<timestamp>.txt`.
 
-## **Software versions (current nix-pinned):**
+## Toolchains
 
-| Language | Compiler / Runtime | Source |
-|---|---|---|
-| C / C++ / Fortran / Ada | GCC 16.2.0 (gcc / g++ / gfortran / gnat) | nixpkgs-unstable |
-| D | LDC 1.42.0 | nixpkgs-unstable |
-| Go | 1.26.7 | nixpkgs-unstable |
-| Rust | 1.97.1 | nixpkgs-unstable |
-| Zig | 0.16.0 | nixpkgs-unstable |
-| Pascal | FPC 3.2.2 | nixpkgs-unstable |
-| OCaml | 5.4.1 | nixpkgs-unstable |
-| Java | OpenJDK 25.0.4 | nixpkgs-unstable |
-| Dart | 3.13.0 | nixpkgs-unstable |
-| Nim | 2.2.10 | nixpkgs-unstable |
-| C# | .NET SDK 11.0.100-preview.7 | nixpkgs-unstable |
-| JS (Bun) | 1.3.13 | nixpkgs-unstable |
-| JS (Node) | 26.8.1 | nixpkgs-unstable |
-| PHP | 8.5.9 (with OPcache JIT) | nixpkgs-unstable |
-| Python (CPython) | 3.14.7 | nixpkgs-unstable |
-| Python (PyPy3) | 7.3.20 (Python 3.11.13) | nixpkgs-unstable |
+All from nixpkgs-unstable, no overlays, no vendored binaries.
 
-Everything comes from nixpkgs-unstable, no overlays, no vendored binaries. The dev shell also provides GNU `time`, which the runner requires.
-
-## **Build and run commands:**
-
-| Language | Command |
+| Language | Version |
 |---|---|
-| **C** | `gcc -O3 -march=native -flto -funroll-loops -ffp-contract=off -s` |
-| **C++** | `g++ -std=c++20 -O3 -march=native -flto -funroll-loops -ffp-contract=off -s` |
-| **Fortran** | `gfortran -std=f2023 -O3 -march=native -flto -funroll-loops -ffp-contract=off -s` |
-| **Ada** | `gnatmake -O3 -gnatp -gnatn -march=native -flto -funroll-loops -ffp-contract=off -largs -s` |
-| **Pascal** | `fpc -O3 -OoLOOPUNROLL -OoREGVAR -CpCOREAVX2 -CfAVX2 -Xs` |
-| **D (LDC)** | `ldc2 -O3 -release -mcpu=native -flto=full -fp-contract=off -L-s` |
-| **Rust** | `rustc -C opt-level=3 -C lto=fat -C target-cpu=native -C codegen-units=1 -C panic=abort -C strip=symbols` |
-| **Zig** | `zig build-exe -OReleaseFast -mcpu=native -fstrip -lc` |
-| **Go** | `GOCACHE=$PWD/.gocache GOAMD64=v3 CGO_ENABLED=0 go build -ldflags='-s -w' -trimpath` |
-| **Nim** | `nim c --nimcache:nimcache -d:danger -d:lto --panics:on --passC:-march=native --passC:-ffp-contract=off --passL:-s` |
-| **OCaml** | `ocamlopt -O3 -unsafe -inline 200 -nodynlink monotonic.c -ccopt -s` (C stub: stdlib has no monotonic clock) |
-| **Java** | `javac bench.java` then `java bench` (default heap, default GC) |
-| **Dart** | `dart compile exe -S bench.sym` (AOT, `-S` strips the snapshot, runtime stays embedded) |
-| **C#** | `dotnet build -c Release -o out Program.cs` then `dotnet out/Program.dll` |
-| **PHP** | `php -d opcache.enable_cli=1 -d opcache.jit=tracing -d opcache.jit_buffer_size=256M` |
-| **Python (CPython)** | `python3` |
-| **Python (PyPy3)** | `pypy3` (JIT default) |
-| **JS (Bun / Node)** | direct interpret (JIT default) |
+| C, C++, Fortran, Ada | GCC 16.2.0 |
+| D | LDC 1.42.0 |
+| Rust | 1.99.0 |
+| Zig | 0.17.0 |
+| Go | 1.27.2 |
+| Nim | 2.2.12 |
+| OCaml | 5.5.1 |
+| Pascal | FPC 3.2.2 |
+| Swift | 6.3.3 |
+| Haskell | GHC 9.14.1 |
+| Java | OpenJDK 27 (Temurin) |
+| Dart | 3.13.0 |
+| C# | .NET SDK 11.0.100-rc.1 |
+| JS | Bun 1.4.2, Node 26.12.0 |
+| PHP | 8.5.11 |
+| Python | CPython 3.15.0, PyPy 7.3.20 |
+| Ruby | 4.0.7 |
 
-> `-ffp-contract=off` and the explicit `float64()` rounding in `bench.go` keep every language on the same IEEE result. Nim `--panics:on` = Rust `-C panic=abort`. PHP OPcache JIT is the standard prod config.
+| Language | Build / run |
+|---|---|
+| C | `gcc -std=c23 -O3 -march=native -flto -funroll-loops -ffp-contract=off -s` |
+| C++ | `g++ -std=c++23 -O3 -march=native -flto -funroll-loops -ffp-contract=off -D_GLIBCXX_ASSERTIONS -s` |
+| Fortran | `gfortran -std=f2023 -O3 -march=native -flto -funroll-loops -ffp-contract=off -fcheck=bounds -s` |
+| Ada | `gnatmake -gnat2022 -O3 -gnato0 -gnatn -march=native -flto -funroll-loops -ffp-contract=off -largs -s` |
+| Pascal | `fpc -O3 -OoLOOPUNROLL -OoREGVAR -CpCOREAVX2 -CfAVX2 -Cr -Xs` |
+| D | `ldc2 -O3 -release -boundscheck=on -mcpu=native -flto=full -fp-contract=off -L-s` |
+| Rust | `rustc --edition 2024 -C opt-level=3 -C lto=fat -C target-cpu=native -C codegen-units=1 -C panic=abort -C strip=symbols` |
+| Zig | `zig build-exe -OReleaseSafe -mcpu=native -fstrip -lc` |
+| Go | `GOAMD64=v3 CGO_ENABLED=0 go build -ldflags='-s -w' -trimpath` |
+| Nim | `nim c -d:danger --boundChecks:on -d:lto --panics:on --passC:-march=native --passC:-funroll-loops --passC:-ffp-contract=off --passL:-s` |
+| OCaml | `ocamlopt -inline 200 -nodynlink monotonic.c -ccopt -s` |
+| Swift | `swiftc -swift-version 6 -O -wmo -Xcc -march=native -Xlinker -s` |
+| Haskell | `ghc -O2 -msse4.2 -mbmi2 -mavx2 -optl-s` |
+| Java | `javac bench.java`, then `java bench` |
+| Dart | `dart compile exe -S bench.sym` |
+| C# | `dotnet build -c Release -o out Program.cs`, then `dotnet out/Program.dll` |
+| JS | `bun bench.js` / `node bench.js` |
+| PHP | `php -d opcache.enable_cli=1 -d opcache.jit=tracing -d opcache.jit_buffer_size=256M` |
+| Python | `python3 bench.py` / `pypy3 bench.py` |
+| Ruby | `ruby --yjit bench.rb` |
 
-<br/>
-<a id="results"></a>
-
-## **Results:**
-
-Results are from 3 September 2026 (one run per language). Peak RSS is whole-process peak resident memory from GNU `time`. Binary size is the stripped native executable, shown as - for languages that run on a separate runtime (JVM, .NET, Bun, Node, PHP, Python). Compile time is the build command's wall time on a clean tree, shown as - where there is nothing to compile.
-<table>
-<tbody>
-    <th>Language</th>
-    <th>Total Runtime</th>
-    <th>Factor of "slowness"</th>
-    <th>Peak RSS</th>
-    <th>Binary Size</th>
-    <th>Compile Time</th>
-    <th>Primes</th>
-    <th>Fibonacci</th>
-    <th>String Operations</th>
-    <th>Mandelbrot</th>
-    <th>Binary Trees</th>
-  <tr>
-    <td>C<br/>(GCC 16.2.0)</td>
-    <td>9.762 sec</td>
-    <td>1.00x</td>
-    <td>33.3 MiB</td>
-    <td>26 KiB</td>
-    <td>0.485 sec</td>
-    <td>2.725 sec</td>
-    <td>1.694 sec</td>
-    <td>2.132 sec</td>
-    <td>2.201 sec</td>
-    <td>1.010 sec</td>
-  </tr>
-  <tr>
-    <td>C++<br/>(GCC 16.2.0)</td>
-    <td>9.984 sec</td>
-    <td>1.02x</td>
-    <td>35.4 MiB</td>
-    <td>30 KiB</td>
-    <td>1.321 sec</td>
-    <td>2.725 sec</td>
-    <td>1.721 sec</td>
-    <td>2.190 sec</td>
-    <td>2.201 sec</td>
-    <td>1.147 sec</td>
-  </tr>
-  <tr>
-    <td>Nim<br/>(2.2.10)</td>
-    <td>10.298 sec</td>
-    <td>1.05x</td>
-    <td>51.5 MiB</td>
-    <td>46 KiB</td>
-    <td>1.822 sec</td>
-    <td>2.725 sec</td>
-    <td>1.716 sec</td>
-    <td>2.804 sec</td>
-    <td>2.244 sec</td>
-    <td>0.809 sec</td>
-  </tr>
-  <tr>
-    <td>Ada<br/>(GNAT 16.2.0)</td>
-    <td>10.306 sec</td>
-    <td>1.06x</td>
-    <td>33.7 MiB</td>
-    <td>398 KiB</td>
-    <td>0.691 sec</td>
-    <td>2.726 sec</td>
-    <td>1.666 sec</td>
-    <td>2.603 sec</td>
-    <td>2.202 sec</td>
-    <td>1.109 sec</td>
-  </tr>
-  <tr>
-    <td>Zig<br/>(0.16.0)</td>
-    <td>10.737 sec</td>
-    <td>1.10x</td>
-    <td>33.7 MiB</td>
-    <td>236 KiB</td>
-    <td>3.869 sec</td>
-    <td>2.722 sec</td>
-    <td>3.181 sec</td>
-    <td>1.504 sec</td>
-    <td>2.211 sec</td>
-    <td>1.119 sec</td>
-  </tr>
-  <tr>
-    <td>Fortran<br/>(GCC 16.2.0)</td>
-    <td>10.915 sec</td>
-    <td>1.12x</td>
-    <td>34.4 MiB</td>
-    <td>26 KiB</td>
-    <td>0.474 sec</td>
-    <td>2.723 sec</td>
-    <td>1.701 sec</td>
-    <td>3.305 sec</td>
-    <td>2.200 sec</td>
-    <td>0.986 sec</td>
-  </tr>
-  <tr>
-    <td>Rust<br/>(1.97.1)</td>
-    <td>11.767 sec</td>
-    <td>1.21x</td>
-    <td>34.0 MiB</td>
-    <td>349 KiB</td>
-    <td>3.996 sec</td>
-    <td>2.724 sec</td>
-    <td>3.179 sec</td>
-    <td>2.621 sec</td>
-    <td>2.210 sec</td>
-    <td>1.033 sec</td>
-  </tr>
-  <tr>
-    <td>C#<br/>(.NET 11.0.100-preview.7)</td>
-    <td>11.914 sec</td>
-    <td>1.22x</td>
-    <td>122.1 MiB</td>
-    <td>-</td>
-    <td>1.655 sec</td>
-    <td>2.726 sec</td>
-    <td>3.793 sec</td>
-    <td>2.235 sec</td>
-    <td>2.229 sec</td>
-    <td>0.931 sec</td>
-  </tr>
-  <tr>
-    <td>Java<br/>(OpenJDK 25.0.4)</td>
-    <td>13.536 sec</td>
-    <td>1.39x</td>
-    <td>987.8 MiB</td>
-    <td>-</td>
-    <td>0.411 sec</td>
-    <td>2.730 sec</td>
-    <td>4.109 sec</td>
-    <td>4.075 sec</td>
-    <td>2.275 sec</td>
-    <td>0.347 sec</td>
-  </tr>
-  <tr>
-    <td>D<br/>(LDC 1.42.0)</td>
-    <td>13.662 sec</td>
-    <td>1.40x</td>
-    <td>97.6 MiB</td>
-    <td>914 KiB</td>
-    <td>2.873 sec</td>
-    <td>2.723 sec</td>
-    <td>2.979 sec</td>
-    <td>2.351 sec</td>
-    <td>2.208 sec</td>
-    <td>3.401 sec</td>
-  </tr>
-  <tr>
-    <td>Go<br/>(1.26.7)</td>
-    <td>15.366 sec</td>
-    <td>1.57x</td>
-    <td>60.4 MiB</td>
-    <td>1564 KiB</td>
-    <td>2.247 sec</td>
-    <td>2.726 sec</td>
-    <td>6.075 sec</td>
-    <td>2.532 sec</td>
-    <td>2.237 sec</td>
-    <td>1.796 sec</td>
-  </tr>
-  <tr>
-    <td>OCaml<br/>(5.4.1)</td>
-    <td>16.233 sec</td>
-    <td>1.66x</td>
-    <td>89.7 MiB</td>
-    <td>1039 KiB</td>
-    <td>0.226 sec</td>
-    <td>3.200 sec</td>
-    <td>4.897 sec</td>
-    <td>5.000 sec</td>
-    <td>2.271 sec</td>
-    <td>0.865 sec</td>
-  </tr>
-  <tr>
-    <td>JS (Bun)<br/>(1.3.13)</td>
-    <td>16.732 sec</td>
-    <td>1.71x</td>
-    <td>336.1 MiB</td>
-    <td>-</td>
-    <td>-</td>
-    <td>2.759 sec</td>
-    <td>7.735 sec</td>
-    <td>3.129 sec</td>
-    <td>2.293 sec</td>
-    <td>0.816 sec</td>
-  </tr>
-  <tr>
-    <td>Dart<br/>(3.13.0 AOT)</td>
-    <td>20.754 sec</td>
-    <td>2.13x</td>
-    <td>74.6 MiB</td>
-    <td>5617 KiB</td>
-    <td>1.067 sec</td>
-    <td>2.963 sec</td>
-    <td>8.135 sec</td>
-    <td>6.523 sec</td>
-    <td>2.268 sec</td>
-    <td>0.865 sec</td>
-  </tr>
-  <tr>
-    <td>JS (Node)<br/>(v26.8.1)</td>
-    <td>20.973 sec</td>
-    <td>2.15x</td>
-    <td>266.9 MiB</td>
-    <td>-</td>
-    <td>-</td>
-    <td>2.771 sec</td>
-    <td>11.668 sec</td>
-    <td>2.843 sec</td>
-    <td>2.247 sec</td>
-    <td>1.444 sec</td>
-  </tr>
-  <tr>
-    <td>Pascal<br/>(FPC 3.2.2)</td>
-    <td>24.247 sec</td>
-    <td>2.48x</td>
-    <td>32.5 MiB</td>
-    <td>502 KiB</td>
-    <td>0.118 sec</td>
-    <td>3.249 sec</td>
-    <td>5.933 sec</td>
-    <td>11.254 sec</td>
-    <td>2.297 sec</td>
-    <td>1.514 sec</td>
-  </tr>
-  <tr>
-    <td>Python (PyPy3)<br/>(7.3.20 / 3.11.13)</td>
-    <td>29.371 sec</td>
-    <td>3.01x</td>
-    <td>235.2 MiB</td>
-    <td>-</td>
-    <td>-</td>
-    <td>3.346 sec</td>
-    <td>12.676 sec</td>
-    <td>6.141 sec</td>
-    <td>2.390 sec</td>
-    <td>4.818 sec</td>
-  </tr>
-  <tr>
-    <td>PHP<br/>(8.5.9)</td>
-    <td>44.903 sec</td>
-    <td>4.60x</td>
-    <td>153.9 MiB</td>
-    <td>-</td>
-    <td>-</td>
-    <td>3.306 sec</td>
-    <td>21.076 sec</td>
-    <td>7.812 sec</td>
-    <td>4.385 sec</td>
-    <td>8.324 sec</td>
-  </tr>
-  <tr>
-    <td>Python 3<br/>(3.14.7)</td>
-    <td>409.343 sec</td>
-    <td>41.93x</td>
-    <td>110.5 MiB</td>
-    <td>-</td>
-    <td>-</td>
-    <td>86.049 sec</td>
-    <td>134.200 sec</td>
-    <td>31.933 sec</td>
-    <td>128.638 sec</td>
-    <td>28.523 sec</td>
-  </tr>
-</tbody>
-</table>
+Exact commands, including cache paths, are in `run_benchmarks.sh`.

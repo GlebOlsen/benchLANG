@@ -17,13 +17,14 @@ clean_artifacts() {
         [D]="bench bench.o"
         [Fortran]="bench bench.o bench.mod"
         [GO]="bench"
-        [Java]="bench.class bench\$Node.class"
         [Nim]="bench"
         [OCaml]="bench bench.cmi bench.cmx bench.o monotonic.o"
         [Pascal]="bench bench.o bench.ppu"
         [Rust]="bench"
         [Zig]="bench bench.o"
         [Dart]="bench bench.exe bench.sym"
+        [Swift]="bench"
+        [Haskell]="bench"
     )
     local removed=0
     for lang in "${!patterns[@]}"; do
@@ -39,6 +40,8 @@ clean_artifacts() {
     # Go's user-wide build cache would turn a rebuild into a bare link, hiding compile time.
     rm -rf "$LANGUAGES_DIR/GO/.gocache" 2>/dev/null
     rm -rf "$LANGUAGES_DIR/Python/__pycache__" 2>/dev/null
+    rm -rf "$LANGUAGES_DIR/Haskell/build" 2>/dev/null
+    rm -f "$LANGUAGES_DIR/Java/"*.class 2>/dev/null
     # Nim caches C objects keyed on source only; a compiler bump leaves stale LTO objects.
     rm -rf "$LANGUAGES_DIR/Nim/nimcache" 2>/dev/null
 
@@ -58,7 +61,7 @@ clean_artifacts() {
         done
     done
 
-    echo -e "${G}✓${N} Cleaned ${removed} artifacts + C#/Zig/Go/Nim/Python caches + dotnet runfile cache"
+    echo -e "${G}✓${N} Cleaned ${removed} artifacts + C#/Zig/Go/Nim/Python/Haskell caches, Java classes + dotnet runfile cache"
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then

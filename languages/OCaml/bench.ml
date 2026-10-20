@@ -1,11 +1,18 @@
-let primes_limit = 20_000_000
-let fibonacci_n = 45
-let string_iter = 5_000_000
-let mandel_size = 4096
+let primes_limit = 8_000_000
+let fibonacci_n = 43
+let string_iter = 1_200_000
+let mandel_size = 2048
 let mandel_max_iter = 256
 let tree_min_depth = 4
-let tree_max_depth = 18
+let tree_max_depth = 17
 let sentence_text = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again"
+let knuc_length = 6_000_000
+let knuc_seed = 42
+let knuc_im = 139968
+let knuc_ia = 3877
+let knuc_ic = 29573
+let knuc_ks = [1; 2; 3; 4; 6; 12; 18]
+let knuc_query = "GGTATTTTAATTTATAGT"
 
 external now : unit -> float = "bench_now"
 let report name checksum secs = Printf.printf "%s %d %.3f\n" name checksum secs
@@ -32,10 +39,15 @@ let rec fib n = if n < 2 then n else fib (n - 1) + fib (n - 2)
 let bench_strings sentence iters =
   let words = Array.of_list (String.split_on_char ' ' sentence) in
   let wcount = Array.length words in
+  let cur = Array.copy words in
   let total = ref 0 in
-  for _ = 1 to iters do
+  for it = 0 to iters - 1 do
+    let w = it mod wcount in
+    let s = cur.(w) in
+    let n = String.length s in
+    cur.(w) <- String.init n (fun k -> s.[n - 1 - k]);
     for i = 0 to wcount - 1 do
-      let wi = words.(i) in
+      let wi = cur.(i) in
       for j = 0 to wcount - 1 do
         if wi = words.(j) then incr total
       done
@@ -73,8 +85,7 @@ let rec check_tree = function
   | Empty -> 0
 
 let bench_binary_trees max_depth =
-  let checksum = ref 0 in
-  checksum := !checksum + check_tree (make_tree 0 (max_depth + 1));
+  let checksum = ref (check_tree (make_tree 0 (max_depth + 1))) in
   let long_lived = make_tree 0 max_depth in
   let d = ref tree_min_depth in
   while !d <= max_depth do
@@ -86,6 +97,33 @@ let bench_binary_trees max_depth =
   done;
   !checksum + check_tree long_lived
 
+let bench_knucleotide length =
+  let buf = Bytes.create length in
+  let seed = ref knuc_seed in
+  for i = 0 to length - 1 do
+    seed := (!seed * knuc_ia + knuc_ic) mod knuc_im;
+    Bytes.set buf i
+      (if !seed < 42404 then 'A' else if !seed < 70116 then 'C' else if !seed < 97766 then 'G' else 'T')
+  done;
+  let seq = Bytes.to_string buf in
+  let checksum = ref 0 in
+  List.iter (fun k ->
+    let counts = Hashtbl.create 16 in
+    for i = 0 to length - k do
+      let key = String.sub seq i k in
+      match Hashtbl.find_opt counts key with Some c -> incr c | None -> Hashtbl.add counts key (ref 1)
+    done;
+    checksum := !checksum + Hashtbl.length counts;
+    if k <= 2 then begin
+      let entries = Hashtbl.fold (fun key count acc -> (key, !count) :: acc) counts [] in
+      let sorted = List.sort (fun (k1, c1) (k2, c2) ->
+        match Int.compare c2 c1 with 0 -> String.compare k1 k2 | c -> c) entries in
+      List.iteri (fun r (_, c) -> checksum := !checksum + (r + 1) * c) sorted
+    end else
+      checksum := !checksum + (match Hashtbl.find_opt counts (String.sub knuc_query 0 k) with Some c -> !c | None -> 0)
+  ) knuc_ks;
+  !checksum
+
 let () =
   let timed name f =
     let t = now () in
@@ -96,4 +134,5 @@ let () =
   timed "fib" (fun () -> fib fibonacci_n);
   timed "strings" (fun () -> bench_strings sentence_text string_iter);
   timed "mandelbrot" (fun () -> bench_mandelbrot mandel_size);
-  timed "binarytrees" (fun () -> bench_binary_trees tree_max_depth)
+  timed "binarytrees" (fun () -> bench_binary_trees tree_max_depth);
+  timed "knucleotide" (fun () -> bench_knucleotide knuc_length)

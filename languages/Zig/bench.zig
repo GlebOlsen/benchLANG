@@ -1,22 +1,31 @@
 const std = @import("std");
 
-const PRIMES_LIMIT: u32 = 20_000_000;
-const FIBONACCI_N: u32 = 45;
-const STRING_ITER: u32 = 5_000_000;
-const MANDEL_SIZE: usize = 4096;
+const PRIMES_LIMIT: u32 = 8_000_000;
+const FIBONACCI_N: u32 = 43;
+const STRING_ITER: usize = 1_200_000;
+const MANDEL_SIZE: usize = 2048;
 const MANDEL_MAX_ITER: i32 = 256;
 const TREE_MIN_DEPTH: i32 = 4;
-const TREE_MAX_DEPTH: i32 = 18;
+const TREE_MAX_DEPTH: i32 = 17;
 const MAX_WORDS = 32;
 const SENTENCE = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
+const KNUC_LENGTH: usize = 6_000_000;
+const KNUC_SEED: u32 = 42;
+const KNUC_IM: u32 = 139968;
+const KNUC_IA: u32 = 3877;
+const KNUC_IC: u32 = 29573;
+const KNUC_QUERY = "GGTATTTTAATTTATAGT";
 
 fn now(io: std.Io) f64 {
     const ts = std.Io.Clock.now(.awake, io);
     return @as(f64, @floatFromInt(ts.nanoseconds)) / 1e9;
 }
 
-fn report(out: *std.Io.Writer, name: []const u8, checksum: i64, secs: f64) !void {
-    try out.print("{s} {d} {d:.3}\n", .{ name, checksum, secs });
+fn run(io: std.Io, out: *std.Io.Writer, name: []const u8, bench: anytype, args: anytype) !void {
+    const t = now(io);
+    const r: anyerror!i64 = @call(.auto, bench, args);
+    const secs = now(io) - t;
+    try out.print("{s} {d} {d:.3}\n", .{ name, try r, secs });
     try out.flush();
 }
 
@@ -44,19 +53,23 @@ fn fib(n: u32) i64 {
     return if (n < 2) @as(i64, n) else fib(n - 1) + fib(n - 2);
 }
 
-fn benchStrings(sentence: []const u8, iters: u32) i64 {
+fn benchStrings(sentence: []const u8, iters: usize) i64 {
+    var cbuf: [SENTENCE.len]u8 = undefined;
+    @memcpy(&cbuf, sentence);
     var words: [MAX_WORDS][]const u8 = undefined;
+    var cur: [MAX_WORDS][]u8 = undefined;
     var wcount: usize = 0;
     var tok = std.mem.tokenizeScalar(u8, sentence, ' ');
     while (tok.next()) |w| {
         if (wcount == MAX_WORDS) break;
         words[wcount] = w;
+        cur[wcount] = cbuf[tok.index - w.len .. tok.index];
         wcount += 1;
     }
     var total: i64 = 0;
-    var it: u32 = 0;
-    while (it < iters) : (it += 1) {
-        for (words[0..wcount]) |wi| {
+    for (0..iters) |it| {
+        std.mem.reverse(u8, cur[it % wcount]);
+        for (cur[0..wcount]) |wi| {
             for (words[0..wcount]) |wj| {
                 if (std.mem.eql(u8, wi, wj)) total += 1;
             }
@@ -140,6 +153,47 @@ fn benchBinaryTrees(allocator: std.mem.Allocator, max_depth: i32) !i64 {
     return checksum;
 }
 
+const KmerCount = struct {
+    key: []const u8,
+    count: i32,
+};
+
+fn kmerLessThan(_: void, a: KmerCount, b: KmerCount) bool {
+    if (a.count != b.count) return a.count > b.count;
+    return std.mem.lessThan(u8, a.key, b.key);
+}
+
+fn benchKnucleotide(allocator: std.mem.Allocator, length: usize) !i64 {
+    const seq = try allocator.alloc(u8, length);
+    defer allocator.free(seq);
+    var seed: u32 = KNUC_SEED;
+    for (seq) |*c| {
+        seed = (seed * KNUC_IA + KNUC_IC) % KNUC_IM;
+        c.* = if (seed < 42404) 'A' else if (seed < 70116) 'C' else if (seed < 97766) 'G' else 'T';
+    }
+    var checksum: i64 = 0;
+    for ([_]usize{ 1, 2, 3, 4, 6, 12, 18 }) |k| {
+        var counts: std.StringHashMapUnmanaged(i32) = .empty;
+        defer counts.deinit(allocator);
+        for (0..length - k + 1) |i| {
+            const entry = try counts.getOrPutValue(allocator, seq[i .. i + k], 0);
+            entry.value_ptr.* += 1;
+        }
+        checksum += counts.count();
+        if (k <= 2) {
+            var entries: std.ArrayList(KmerCount) = .empty;
+            defer entries.deinit(allocator);
+            var it = counts.iterator();
+            while (it.next()) |e| try entries.append(allocator, .{ .key = e.key_ptr.*, .count = e.value_ptr.* });
+            std.mem.sort(KmerCount, entries.items, {}, kmerLessThan);
+            for (entries.items, 1..) |e, r| checksum += @as(i64, @intCast(r)) * e.count;
+        } else if (counts.get(KNUC_QUERY[0..k])) |c| {
+            checksum += c;
+        }
+    }
+    return checksum;
+}
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const allocator = std.heap.c_allocator;
@@ -148,21 +202,10 @@ pub fn main(init: std.process.Init) !void {
     var w = std.Io.File.stdout().writer(io, &buf);
     const out = &w.interface;
 
-    var t: f64 = undefined;
-    var r: i64 = undefined;
-    t = now(io);
-    r = benchPrimes(PRIMES_LIMIT);
-    try report(out, "primes", r, now(io) - t);
-    t = now(io);
-    r = fib(FIBONACCI_N);
-    try report(out, "fib", r, now(io) - t);
-    t = now(io);
-    r = benchStrings(SENTENCE, STRING_ITER);
-    try report(out, "strings", r, now(io) - t);
-    t = now(io);
-    r = benchMandelbrot(MANDEL_SIZE);
-    try report(out, "mandelbrot", r, now(io) - t);
-    t = now(io);
-    r = try benchBinaryTrees(allocator, TREE_MAX_DEPTH);
-    try report(out, "binarytrees", r, now(io) - t);
+    try run(io, out, "primes", benchPrimes, .{PRIMES_LIMIT});
+    try run(io, out, "fib", fib, .{FIBONACCI_N});
+    try run(io, out, "strings", benchStrings, .{ SENTENCE, STRING_ITER });
+    try run(io, out, "mandelbrot", benchMandelbrot, .{MANDEL_SIZE});
+    try run(io, out, "binarytrees", benchBinaryTrees, .{ allocator, TREE_MAX_DEPTH });
+    try run(io, out, "knucleotide", benchKnucleotide, .{ allocator, KNUC_LENGTH });
 }

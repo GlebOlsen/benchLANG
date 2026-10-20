@@ -23,21 +23,25 @@
           gnat16         # Ada
           ldc            # D
           rustc
-          zig
-          go
+          zig_0_17
+          go_1_27
           nim
           ocaml
           fpc            # Pascal
-          jdk25          # Java
+          temurin-bin-27 # Java (only JDK 27 build in nixpkgs)
           dart
           dotnet-sdk_11  # C#
           bun
           nodejs_26
           php85
-          python3        # CPython
+          python315      # CPython
           pypy3
+          ruby_4_0
+          swift
+          haskell.compiler.ghc914
 
           time           # GNU time: wall/user/sys/max RSS per run
+          util-linux     # taskset: pins benchmarks away from the runner
           coreutils
           gnumake
           gnused
@@ -71,6 +75,9 @@
           echo "PHP:     $(php --version | head -n1)"
           echo "CPython: $(python3 --version)"
           echo "PyPy:    $(pypy3 --version 2>&1 | head -n1)"
+          echo "Ruby:    $(ruby --version)"
+          echo "Swift:   $(swiftc --version 2>&1 | head -n1)"
+          echo "GHC:     $(ghc --version)"
           echo "==============================================="
         '';
       };

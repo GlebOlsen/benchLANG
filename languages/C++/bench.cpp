@@ -1,19 +1,30 @@
+#include <algorithm>
 #include <chrono>
 #include <cstdio>
+#include <ranges>
+#include <string>
 #include <string_view>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace {
 
-constexpr int PRIMES_LIMIT    = 20000000;
-constexpr int FIBONACCI_N     = 45;
-constexpr int STRING_ITER     = 5000000;
-constexpr int MANDEL_SIZE     = 4096;
+constexpr int PRIMES_LIMIT    = 8000000;
+constexpr int FIBONACCI_N     = 43;
+constexpr int STRING_ITER     = 1200000;
+constexpr int MANDEL_SIZE     = 2048;
 constexpr int MANDEL_MAX_ITER = 256;
 constexpr int TREE_MIN_DEPTH  = 4;
-constexpr int TREE_MAX_DEPTH  = 18;
+constexpr int TREE_MAX_DEPTH  = 17;
 constexpr std::string_view SENTENCE =
     "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
+constexpr int KNUC_LENGTH     = 6000000;
+constexpr int KNUC_SEED       = 42;
+constexpr int KNUC_IM         = 139968;
+constexpr int KNUC_IA         = 3877;
+constexpr int KNUC_IC         = 29573;
+constexpr std::string_view KNUC_QUERY = "GGTATTTTAATTTATAGT";
 
 double now() {
     return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -42,18 +53,18 @@ long long bench_primes(int limit) {
 long long fib(int n) { return n < 2 ? n : fib(n - 1) + fib(n - 2); }
 
 long long bench_strings(std::string_view sentence, int iters) {
-    std::vector<std::string_view> words;
-    for (size_t start = 0; start < sentence.size();) {
-        size_t sp = sentence.find(' ', start);
-        if (sp == std::string_view::npos) sp = sentence.size();
-        words.push_back(sentence.substr(start, sp - start));
-        start = sp + 1;
-    }
+    auto words = sentence | std::views::split(' ')
+               | std::views::transform([](auto w) { return std::string_view(w); })
+               | std::ranges::to<std::vector>();
+    auto cur = words | std::ranges::to<std::vector<std::string>>();
     long long total = 0;
-    for (int it = 0; it < iters; it++)
-        for (std::string_view wi : words)
+    for (int it = 0; it < iters; it++) {
+        std::string& w = cur[it % cur.size()];
+        std::ranges::reverse(w);
+        for (std::string_view wi : cur)
             for (std::string_view wj : words)
                 if (wi == wj) total++;
+    }
     return total;
 }
 
@@ -121,6 +132,32 @@ long long bench_binary_trees(int max_depth) {
     return checksum;
 }
 
+long long bench_knucleotide(int length) {
+    std::string seq(length, '\0');
+    int seed = KNUC_SEED;
+    for (int i = 0; i < length; i++) {
+        seed = (seed * KNUC_IA + KNUC_IC) % KNUC_IM;
+        seq[i] = seed < 42404 ? 'A' : seed < 70116 ? 'C' : seed < 97766 ? 'G' : 'T';
+    }
+    std::string_view sv = seq;
+    long long checksum = 0;
+    for (int k : {1, 2, 3, 4, 6, 12, 18}) {
+        std::unordered_map<std::string_view, int> counts;
+        for (int i = 0; i + k <= length; i++) counts[sv.substr(i, k)]++;
+        checksum += counts.size();
+        if (k <= 2) {
+            std::vector<std::pair<std::string_view, int>> entries(counts.begin(), counts.end());
+            std::ranges::sort(entries, [](const auto& a, const auto& b) {
+                return a.second != b.second ? a.second > b.second : a.first < b.first;
+            });
+            for (auto [r, e] : std::views::enumerate(entries)) checksum += (r + 1) * e.second;
+        } else if (auto it = counts.find(KNUC_QUERY.substr(0, k)); it != counts.end()) {
+            checksum += it->second;
+        }
+    }
+    return checksum;
+}
+
 }
 
 int main() {
@@ -131,5 +168,6 @@ int main() {
     t = now(); r = bench_strings(SENTENCE, STRING_ITER); report("strings", r, now() - t);
     t = now(); r = bench_mandelbrot(MANDEL_SIZE);        report("mandelbrot", r, now() - t);
     t = now(); r = bench_binary_trees(TREE_MAX_DEPTH);   report("binarytrees", r, now() - t);
+    t = now(); r = bench_knucleotide(KNUC_LENGTH);       report("knucleotide", r, now() - t);
     return 0;
 }

@@ -1,24 +1,34 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 )
 
 const (
-	primesLimit   = 20_000_000
-	fibonacciN    = 45
-	stringIter    = 5_000_000
-	mandelSize    = 4096
+	primesLimit   = 8_000_000
+	fibonacciN    = 43
+	stringIter    = 1_200_000
+	mandelSize    = 2048
 	mandelMaxIter = 256
 	treeMinDepth  = 4
-	treeMaxDepth  = 18
+	treeMaxDepth  = 17
 	sentenceText  = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again"
+	knucLength    = 6_000_000
+	knucSeed      = 42
+	knucIM        = 139968
+	knucIA        = 3877
+	knucIC        = 29573
+	knucQuery     = "GGTATTTTAATTTATAGT"
 )
 
-func report(name string, checksum int64, secs float64) {
-	fmt.Printf("%s %d %.3f\n", name, checksum, secs)
+func bench(name string, work func() int64) {
+	start := time.Now()
+	checksum := work()
+	fmt.Printf("%s %d %.3f\n", name, checksum, time.Since(start).Seconds())
 }
 
 func isPrime(n int32) bool {
@@ -58,9 +68,14 @@ func fib(n int) int64 {
 
 func benchStrings(sentence string, iters int) int64 {
 	words := strings.Split(sentence, " ")
+	cur := slices.Clone(words)
 	var total int64
-	for it := 0; it < iters; it++ {
-		for _, wi := range words {
+	for it := range iters {
+		i := it % len(words)
+		b := []byte(cur[i])
+		slices.Reverse(b)
+		cur[i] = string(b)
+		for _, wi := range cur {
 			for _, wj := range words {
 				if wi == wj {
 					total++
@@ -71,13 +86,11 @@ func benchStrings(sentence string, iters int) int64 {
 	return total
 }
 
-// Explicit float64() conversions force IEEE rounding of each product so the
-// compiler cannot fuse them into FMA (Go spec permits fusion otherwise).
 func benchMandelbrot(size int) int64 {
 	var checksum int64
-	for py := 0; py < size; py++ {
+	for py := range size {
 		cy := float64(py)/float64(size)*3.0 - 1.5
-		for px := 0; px < size; px++ {
+		for px := range size {
 			cx := float64(px)/float64(size)*3.0 - 2.0
 			zx, zy := 0.0, 0.0
 			iter := 0
@@ -113,36 +126,68 @@ func checkTree(n *node) int64 {
 }
 
 func benchBinaryTrees(maxDepth int) int64 {
-	var checksum int64
-	stretch := makeTree(0, maxDepth+1)
-	checksum += checkTree(stretch)
+	checksum := checkTree(makeTree(0, maxDepth+1))
 	longLived := makeTree(0, maxDepth)
 	for d := treeMinDepth; d <= maxDepth; d += 2 {
-		iters := 1 << (maxDepth - d + treeMinDepth)
-		for i := 0; i < iters; i++ {
+		for i := range 1 << (maxDepth - d + treeMinDepth) {
 			checksum += checkTree(makeTree(int64(i+1), d))
 		}
 	}
-	checksum += checkTree(longLived)
+	return checksum + checkTree(longLived)
+}
+
+type kmerCount struct {
+	key   string
+	count int
+}
+
+func benchKnucleotide(length int) int64 {
+	buf := make([]byte, length)
+	seed := int32(knucSeed)
+	for i := range buf {
+		seed = (seed*knucIA + knucIC) % knucIM
+		switch {
+		case seed < 42404:
+			buf[i] = 'A'
+		case seed < 70116:
+			buf[i] = 'C'
+		case seed < 97766:
+			buf[i] = 'G'
+		default:
+			buf[i] = 'T'
+		}
+	}
+	seq := string(buf)
+	var checksum int64
+	for _, k := range []int{1, 2, 3, 4, 6, 12, 18} {
+		counts := make(map[string]int)
+		for i := range length - k + 1 {
+			counts[seq[i:i+k]]++
+		}
+		checksum += int64(len(counts))
+		if k <= 2 {
+			var entries []kmerCount
+			for key, count := range counts {
+				entries = append(entries, kmerCount{key, count})
+			}
+			slices.SortFunc(entries, func(a, b kmerCount) int {
+				return cmp.Or(cmp.Compare(b.count, a.count), cmp.Compare(a.key, b.key))
+			})
+			for r, e := range entries {
+				checksum += int64(r+1) * int64(e.count)
+			}
+		} else {
+			checksum += int64(counts[knucQuery[:k]])
+		}
+	}
 	return checksum
 }
 
 func main() {
-	var t time.Time
-	var r int64
-	t = time.Now()
-	r = benchPrimes(primesLimit)
-	report("primes", r, time.Since(t).Seconds())
-	t = time.Now()
-	r = fib(fibonacciN)
-	report("fib", r, time.Since(t).Seconds())
-	t = time.Now()
-	r = benchStrings(sentenceText, stringIter)
-	report("strings", r, time.Since(t).Seconds())
-	t = time.Now()
-	r = benchMandelbrot(mandelSize)
-	report("mandelbrot", r, time.Since(t).Seconds())
-	t = time.Now()
-	r = benchBinaryTrees(treeMaxDepth)
-	report("binarytrees", r, time.Since(t).Seconds())
+	bench("primes", func() int64 { return benchPrimes(primesLimit) })
+	bench("fib", func() int64 { return fib(fibonacciN) })
+	bench("strings", func() int64 { return benchStrings(sentenceText, stringIter) })
+	bench("mandelbrot", func() int64 { return benchMandelbrot(mandelSize) })
+	bench("binarytrees", func() int64 { return benchBinaryTrees(treeMaxDepth) })
+	bench("knucleotide", func() int64 { return benchKnucleotide(knucLength) })
 }

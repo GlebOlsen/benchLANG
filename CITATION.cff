@@ -7,12 +7,13 @@ authors:
     family-names: Olsen
 repository-code: "https://github.com/glebolsen/benchLANG"
 abstract: >-
-  Cross-language runtime benchmark covering 19 programming languages
-  (C, C++, Rust, Zig, Go, Nim, Fortran, Ada, D, Java, C#, OCaml, Dart,
-  Pascal, JS Bun/Node, PHP, CPython, PyPy3) on five workloads: trial
-  division primes, recursive Fibonacci, string equality, Mandelbrot, and
-  binary trees. Records per-workload wall time, process CPU time, peak RSS
-  and native binary size, and verifies identical checksums across languages.
+  Cross-language runtime benchmark covering 20 programming languages
+  (C, C++, Rust, Zig, Go, Nim, Fortran, Ada, D, Swift, Haskell, Java, C#,
+  OCaml, Dart, Pascal, JS Bun/Node, PHP, Python CPython/PyPy3, Ruby) on six
+  workloads: trial division primes, recursive Fibonacci, string equality,
+  Mandelbrot, binary trees and k-nucleotide. Records per-workload wall time,
+  process CPU time, peak memory usage, native binary size and compile time,
+  and verifies identical checksums across languages.
   Toolchains pinned via Nix flake for reproducibility.
 keywords:
   - benchmark
@@ -21,5 +22,5 @@ keywords:
   - language-comparison
   - reproducible-benchmarks
 license: MIT
-version: "2026.09"
-date-released: "2026-09-03"
+version: "2026.10"
+date-released: "2026-10-20"

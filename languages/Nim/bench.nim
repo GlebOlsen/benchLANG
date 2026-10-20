@@ -1,21 +1,29 @@
-import std/[monotimes, strutils]
+import std/[algorithm, monotimes, strutils, tables]
 
 const
-  PrimesLimit = 20_000_000'i32
-  FibonacciN = 45
-  StringIter = 5_000_000
-  MandelSize = 4096
+  PrimesLimit = 8_000_000'i32
+  FibonacciN = 43
+  StringIter = 1_200_000
+  MandelSize = 2048
   MandelMaxIter = 256
   TreeMinDepth = 4
-  TreeMaxDepth = 18
+  TreeMaxDepth = 17
   Sentence = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again"
+  KnucLength = 6_000_000
+  KnucSeed = 42'i32
+  KnucIM = 139968'i32
+  KnucIA = 3877'i32
+  KnucIC = 29573'i32
+  KnucKs = [1, 2, 3, 4, 6, 12, 18]
+  KnucQuery = "GGTATTTTAATTTATAGT"
 
-proc now(): float = getMonoTime().ticks.float / 1e9
-
-proc report(name: string, checksum: int64, secs: float) =
+template bench(name: string, work: int64) =
+  let start = getMonoTime().ticks
+  let checksum = work
+  let secs = float(getMonoTime().ticks - start) / 1e9
   echo name, " ", checksum, " ", formatFloat(secs, ffDecimal, 3)
 
-proc isPrime(n: int32): bool =
+func isPrime(n: int32): bool =
   if n < 2: return false
   if n < 4: return true
   if n mod 2 == 0 or n mod 3 == 0: return false
@@ -25,21 +33,23 @@ proc isPrime(n: int32): bool =
     i += 6
   true
 
-proc benchPrimes(limit: int32): int64 =
+func benchPrimes(limit: int32): int64 =
   for i in 2'i32 ..< limit:
     if isPrime(i): inc result
 
-proc fib(n: int): int64 =
+func fib(n: int): int64 =
   if n < 2: int64(n) else: fib(n - 1) + fib(n - 2)
 
-proc benchStrings(sentence: string, iters: int): int64 =
+func benchStrings(sentence: string, iters: int): int64 =
   let words = sentence.split(' ')
+  var cur = words
   for it in 0 ..< iters:
-    for wi in words:
+    cur[it mod cur.len].reverse()
+    for wi in cur:
       for wj in words:
         if wi == wj: inc result
 
-proc benchMandelbrot(size: int): int64 =
+func benchMandelbrot(size: int): int64 =
   for py in 0 ..< size:
     let cy = float64(py) / float64(size) * 3.0 - 1.5
     for px in 0 ..< size:
@@ -58,35 +68,46 @@ type Node = ref object
   left, right: Node
   item: int64
 
-proc makeTree(item: int64, depth: int): Node =
-  if depth == 0:
-    return Node(item: item)
-  Node(left: makeTree(2 * item - 1, depth - 1),
-       right: makeTree(2 * item, depth - 1),
-       item: item)
+func makeTree(item: int64, depth: int): Node =
+  if depth == 0: Node(item: item)
+  else: Node(left: makeTree(2 * item - 1, depth - 1), right: makeTree(2 * item, depth - 1), item: item)
 
-proc checkTree(n: Node): int64 =
-  if n.left == nil: return n.item
-  n.item + checkTree(n.left) - checkTree(n.right)
+func checkTree(n: Node): int64 =
+  if n.left == nil: n.item else: n.item + checkTree(n.left) - checkTree(n.right)
 
-proc benchBinaryTrees(maxDepth: int): int64 =
-  block:
-    let stretch = makeTree(0, maxDepth + 1)
-    result += checkTree(stretch)
+func benchBinaryTrees(maxDepth: int): int64 =
+  result = checkTree(makeTree(0, maxDepth + 1))
   let longLived = makeTree(0, maxDepth)
-  var d = TreeMinDepth
-  while d <= maxDepth:
-    let iters = 1 shl (maxDepth - d + TreeMinDepth)
-    for i in 0 ..< iters:
+  for d in countup(TreeMinDepth, maxDepth, 2):
+    for i in 0 ..< 1 shl (maxDepth - d + TreeMinDepth):
       result += checkTree(makeTree(int64(i + 1), d))
-    d += 2
   result += checkTree(longLived)
 
-when isMainModule:
-  var t: float
-  var r: int64
-  t = now(); r = benchPrimes(PrimesLimit);          report("primes", r, now() - t)
-  t = now(); r = fib(FibonacciN);                    report("fib", r, now() - t)
-  t = now(); r = benchStrings(Sentence, StringIter); report("strings", r, now() - t)
-  t = now(); r = benchMandelbrot(MandelSize);        report("mandelbrot", r, now() - t)
-  t = now(); r = benchBinaryTrees(TreeMaxDepth);     report("binarytrees", r, now() - t)
+func benchKnucleotide(length: int): int64 =
+  var sequence = newString(length)
+  var seed = KnucSeed
+  for i in 0 ..< length:
+    seed = (seed * KnucIA + KnucIC) mod KnucIM
+    sequence[i] = if seed < 42404: 'A' elif seed < 70116: 'C' elif seed < 97766: 'G' else: 'T'
+  for k in KnucKs:
+    var counts: Table[string, int]
+    for i in 0 .. length - k:
+      inc counts.mgetOrPut(sequence[i ..< i + k])
+    result += counts.len
+    if k <= 2:
+      var entries: seq[(string, int)]
+      for entry in counts.pairs:
+        entries.add entry
+      entries.sort(proc (a, b: (string, int)): int =
+        if a[1] != b[1]: cmp(b[1], a[1]) else: cmp(a[0], b[0]))
+      for r, e in entries:
+        result += int64(r + 1) * e[1]
+    else:
+      result += counts.getOrDefault(KnucQuery[0 ..< k])
+
+bench("primes", benchPrimes(PrimesLimit))
+bench("fib", fib(FibonacciN))
+bench("strings", benchStrings(Sentence, StringIter))
+bench("mandelbrot", benchMandelbrot(MandelSize))
+bench("binarytrees", benchBinaryTrees(TreeMaxDepth))
+bench("knucleotide", benchKnucleotide(KnucLength))

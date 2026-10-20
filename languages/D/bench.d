@@ -1,20 +1,25 @@
-import std.datetime.stopwatch, std.stdio, std.string;
+import std.algorithm, std.array, std.datetime.stopwatch, std.exception, std.stdio;
 
-enum primesLimit = 20_000_000;
-enum fibonacciN = 45;
-enum stringIter = 5_000_000;
-enum mandelSize = 4096;
+enum primesLimit = 8_000_000;
+enum fibonacciN = 43;
+enum stringIter = 1_200_000;
+enum mandelSize = 2048;
 enum mandelMaxIter = 256;
 enum treeMinDepth = 4;
-enum treeMaxDepth = 18;
+enum treeMaxDepth = 17;
 enum sentenceText = "The quick brown fox jumps over dat lazy dog that was not enough to jump over the frog again";
+enum knucLength = 6_000_000;
+enum knucSeed = 42;
+enum knucIm = 139968;
+enum knucIa = 3877;
+enum knucIc = 29573;
+enum knucQuery = "GGTATTTTAATTTATAGT";
+immutable knucKs = [1, 2, 3, 4, 6, 12, 18];
 
-void report(string name, long checksum, double secs) {
-    writefln("%s %d %.3f", name, checksum, secs);
-}
-
-double secs(ref StopWatch sw) {
-    return sw.peek.total!"nsecs" / 1e9;
+void bench(string name, lazy long work) {
+    auto sw = StopWatch(AutoStart.yes);
+    immutable checksum = work;
+    writefln("%s %d %.3f", name, checksum, sw.peek.total!"nsecs" / 1e9);
 }
 
 bool isPrime(int n) {
@@ -33,15 +38,18 @@ long benchPrimes(int limit) {
     return count;
 }
 
-long fib(int n) { return n < 2 ? n : fib(n - 1) + fib(n - 2); }
+long fib(int n) => n < 2 ? n : fib(n - 1) + fib(n - 2);
 
 long benchStrings(string sentence, int iters) {
     auto words = sentence.split(' ');
+    auto cur = words.map!(w => w.dup).array;
     long total = 0;
-    foreach (it; 0 .. iters)
-        foreach (wi; words)
+    foreach (it; 0 .. iters) {
+        cur[it % cur.length].reverse();
+        foreach (wi; cur)
             foreach (wj; words)
                 if (wi == wj) total++;
+    }
     return total;
 }
 
@@ -65,44 +73,58 @@ long benchMandelbrot(int size) {
     return checksum;
 }
 
-final class Node {
-    Node left, right;
+struct Node {
+    Node* left, right;
     long item;
-    this(Node left, Node right, long item) { this.left = left; this.right = right; this.item = item; }
 }
 
-Node makeTree(long item, int depth) {
-    if (depth == 0) return new Node(null, null, item);
-    return new Node(makeTree(2 * item - 1, depth - 1), makeTree(2 * item, depth - 1), item);
-}
+Node* makeTree(long item, int depth) =>
+    depth == 0 ? new Node(null, null, item)
+               : new Node(makeTree(2 * item - 1, depth - 1), makeTree(2 * item, depth - 1), item);
 
-long checkTree(Node n) {
-    if (n.left is null) return n.item;
-    return n.item + checkTree(n.left) - checkTree(n.right);
-}
+long checkTree(const Node* n) =>
+    n.left is null ? n.item : n.item + checkTree(n.left) - checkTree(n.right);
 
 long benchBinaryTrees(int maxDepth) {
-    long checksum = 0;
-    {
-        auto stretch = makeTree(0, maxDepth + 1);
-        checksum += checkTree(stretch);
-    }
+    long checksum = checkTree(makeTree(0, maxDepth + 1));
     auto longLived = makeTree(0, maxDepth);
-    for (int d = treeMinDepth; d <= maxDepth; d += 2) {
-        int iters = 1 << (maxDepth - d + treeMinDepth);
-        foreach (i; 0 .. iters)
+    for (int d = treeMinDepth; d <= maxDepth; d += 2)
+        foreach (i; 0 .. 1 << (maxDepth - d + treeMinDepth))
             checksum += checkTree(makeTree(i + 1, d));
+    return checksum + checkTree(longLived);
+}
+
+long benchKnucleotide(int length) {
+    auto buf = new char[length];
+    int seed = knucSeed;
+    foreach (ref c; buf) {
+        seed = (seed * knucIa + knucIc) % knucIm;
+        c = seed < 42404 ? 'A' : seed < 70116 ? 'C' : seed < 97766 ? 'G' : 'T';
     }
-    checksum += checkTree(longLived);
+    string seq = buf.assumeUnique;
+    long checksum = 0;
+    foreach (k; knucKs) {
+        int[string] counts;
+        foreach (i; 0 .. length - k + 1)
+            counts[seq[i .. i + k]]++;
+        checksum += counts.length;
+        if (k <= 2) {
+            auto entries = counts.byPair.array;
+            entries.sort!((a, b) => a.value != b.value ? a.value > b.value : a.key < b.key);
+            foreach (r, e; entries)
+                checksum += (r + 1) * e.value;
+        } else if (auto p = knucQuery[0 .. k] in counts) {
+            checksum += *p;
+        }
+    }
     return checksum;
 }
 
 void main() {
-    auto sw = StopWatch(AutoStart.yes);
-    long r;
-    r = benchPrimes(primesLimit);          report("primes", r, secs(sw)); sw.reset();
-    r = fib(fibonacciN);                   report("fib", r, secs(sw)); sw.reset();
-    r = benchStrings(sentenceText, stringIter); report("strings", r, secs(sw)); sw.reset();
-    r = benchMandelbrot(mandelSize);       report("mandelbrot", r, secs(sw)); sw.reset();
-    r = benchBinaryTrees(treeMaxDepth);    report("binarytrees", r, secs(sw));
+    bench("primes", benchPrimes(primesLimit));
+    bench("fib", fib(fibonacciN));
+    bench("strings", benchStrings(sentenceText, stringIter));
+    bench("mandelbrot", benchMandelbrot(mandelSize));
+    bench("binarytrees", benchBinaryTrees(treeMaxDepth));
+    bench("knucleotide", benchKnucleotide(knucLength));
 }

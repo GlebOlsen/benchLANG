@@ -58,6 +58,18 @@
 # Pascal
 !*.pas
 
+# Dart
+!*.dart
+
+# Ruby
+!*.rb
+
+# Swift
+!*.swift
+
+# Haskell
+!*.hs
+
 !*.sh
 
 !*.nix
